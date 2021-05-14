@@ -4,6 +4,7 @@ using System.Text;
 using System.Net;
 using System.Threading.Tasks;
 
+
 namespace serverWEB {
     class HttpServer {
         public static HttpListener listener;
@@ -11,7 +12,7 @@ namespace serverWEB {
         public static int pageViews = 0;
         public static int favorevoli = 0;
         public static int requestCount = 0;
-        public static string pageData =
+        public static string pageData = 
             "<!DOCTYPE>" +
             "<html>" +
             "  <head>" +
@@ -25,7 +26,13 @@ namespace serverWEB {
             "    </form>" +
             "  </body>" +
             "</html>";
+        public static string loginPage;
 
+        public static void init() {
+            StreamReader sr = new StreamReader(@"pages\login.html");
+            loginPage = sr.ReadToEnd();
+            sr.Close();
+        }
 
         public static async Task HandleIncomingConnections() {
             bool runServer = true;
@@ -61,7 +68,7 @@ namespace serverWEB {
 
                     // Write the response info
                     string disableSubmit = !runServer ? "disabled" : "";
-                    byte[] data = Encoding.UTF8.GetBytes(String.Format(pageData, pageViews, favorevoli, disableSubmit));
+                    byte[] data = Encoding.UTF8.GetBytes(String.Format(loginPage, pageViews, favorevoli, disableSubmit));
                     resp.ContentType = "text/html";
                     resp.ContentEncoding = Encoding.UTF8;
                     resp.ContentLength64 = data.LongLength;
@@ -75,6 +82,8 @@ namespace serverWEB {
 
 
         public static void Main(string[] args) {
+            init();
+            Console.WriteLine(loginPage);
             // Create a Http server and start listening for incoming connections
             listener = new HttpListener();
             listener.Prefixes.Add(url);
@@ -83,8 +92,11 @@ namespace serverWEB {
 
             // Handle requests
             Task listenTask = HandleIncomingConnections();
-            listenTask.GetAwaiter().GetResult();
-
+            try {
+                listenTask.GetAwaiter().GetResult();
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
             // Close the listener
             listener.Close();
         }

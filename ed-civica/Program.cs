@@ -66,6 +66,7 @@ namespace serverWEB {
 
 
         public static void Main(string[] args) {
+            init();
             // Create a Http server and start listening for incoming connections
             listener = new HttpListener();
             listener.Prefixes.Add(url);

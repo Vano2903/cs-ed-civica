@@ -12,20 +12,6 @@ namespace serverWEB {
         public static int pageViews = 0;
         public static int favorevoli = 0;
         public static int requestCount = 0;
-        public static string pageData = 
-            "<!DOCTYPE>" +
-            "<html>" +
-            "  <head>" +
-            "    <title>HttpListener Example</title>" +
-            "  </head>" +
-            "  <body>" +
-            "    <p>Page Views: {0}</p>" +
-            "    <p>Favorevoli: {1}</p>" +
-            "    <form method=\"post\" action=\"./favorevole\">" +
-            "      <input type=\"submit\" value=\"Favorevole\" {2}>" +
-            "    </form>" +
-            "  </body>" +
-            "</html>";
         public static string loginPage;
 
         public static void init() {
@@ -46,44 +32,40 @@ namespace serverWEB {
                 HttpListenerRequest req = ctx.Request;
                 HttpListenerResponse resp = ctx.Response;
 
-                if (req.Url.AbsolutePath != "/favicon.ico") {
-                    if (req.Url.AbsolutePath != "/favorevole")
-                        pageViews += 1;
-                    // Print out some info about the request
-                    Console.WriteLine("Request #: {0}", ++requestCount);
-                    Console.WriteLine(req.Url.ToString());
-                    Console.WriteLine(req.HttpMethod);
-                    Console.WriteLine(req.UserHostName);
-                    Console.WriteLine(req.UserAgent);
-                    Console.WriteLine();
+                if (req.Url.AbsolutePath != "/favorevole")
+                    pageViews += 1;
+                // Print out some info about the request
+                Console.WriteLine("Request #: {0}", ++requestCount);
+                Console.WriteLine(req.Url.ToString());
+                Console.WriteLine(req.HttpMethod);
+                Console.WriteLine(req.UserHostName);
+                Console.WriteLine(req.UserAgent);
+                Console.WriteLine();
 
-                    // If `shutdown` url requested w/ POST, then shutdown the server after serving the page
-                    if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/favorevole")) {
-                        Console.WriteLine("Favorevole requested");
-                        favorevoli++;
-                    }
-
-                    // Make sure we don't increment the page views counter if `favicon.ico` is requested
-
-
-                    // Write the response info
-                    string disableSubmit = !runServer ? "disabled" : "";
-                    byte[] data = Encoding.UTF8.GetBytes(String.Format(loginPage, pageViews, favorevoli, disableSubmit));
-                    resp.ContentType = "text/html";
-                    resp.ContentEncoding = Encoding.UTF8;
-                    resp.ContentLength64 = data.LongLength;
-
-                    // Write out to the response stream (asynchronously), then close it
-                    await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                    resp.Close();
+                // If `shutdown` url requested w/ POST, then shutdown the server after serving the page
+                if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/favorevole")) {
+                    Console.WriteLine("Favorevole requested");
+                    favorevoli++;
                 }
+
+                // Make sure we don't increment the page views counter if `favicon.ico` is requested
+
+
+                // Write the response info
+                string disableSubmit = !runServer ? "disabled" : "";
+                byte[] data = Encoding.UTF8.GetBytes(loginPage);
+                resp.ContentType = "text/html";
+                resp.ContentEncoding = Encoding.UTF8;
+                resp.ContentLength64 = data.LongLength;
+
+                // Write out to the response stream (asynchronously), then close it
+                await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                resp.Close();
             }
         }
 
 
         public static void Main(string[] args) {
-            init();
-            Console.WriteLine(loginPage);
             // Create a Http server and start listening for incoming connections
             listener = new HttpListener();
             listener.Prefixes.Add(url);
@@ -92,11 +74,8 @@ namespace serverWEB {
 
             // Handle requests
             Task listenTask = HandleIncomingConnections();
-            try {
-                listenTask.GetAwaiter().GetResult();
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
+            listenTask.GetAwaiter().GetResult();
+
             // Close the listener
             listener.Close();
         }

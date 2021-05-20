@@ -3,9 +3,40 @@ using System.IO;
 using System.Text;
 using System.Net;
 using System.Threading.Tasks;
-
+using System.Collections.Generic;
 
 namespace serverWEB {
+    class monitor {
+
+    }
+
+    class voter {
+        private int id;
+        private string token;
+        private string email;
+        private string password;
+        private bool voted;
+        private int vote;
+        private int position;
+
+
+    }
+
+    //classe che gestisce le operazione del server
+    class presidente {
+        private List<voter> voters;
+
+        public presidente() {
+            voters = new List<voter>();
+
+        }
+        public void openLogin() { }
+
+        public string printRelazione() {
+            return "";
+        }
+    }
+
     class HttpServer {
         public static HttpListener listener;
         public static string url = "http://localhost:8000/";

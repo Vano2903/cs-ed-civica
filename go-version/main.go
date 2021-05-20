@@ -18,6 +18,7 @@ func init() {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content Type", "text/html")
 	fmt.Fprintf(w, LoginPage)
 }
 

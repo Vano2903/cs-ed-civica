@@ -76,43 +76,33 @@ namespace serverWEB {
             listener = new HttpListener();
             voters = new List<voter>();
         }
-
         public void start() {
             listener.Prefixes.Add(url);
             listener.Start();
         }
-
         public void stop() {
             runServer = false;
         }
-
         public void restart() {
             runServer = true;
         }
-
         public void kill() {
             listener.Close();
         }
-
         public void init() {
             StreamReader sr = new StreamReader(@"pages\login.html");
             loginPage = sr.ReadToEnd();
             sr.Close();
         }
-
         public async Task HandleIncomingConnections() {
-            // While a user hasn't visited the `shutdown` url, keep on handling requests
             while (runServer) {
-                // Will wait here until we hear from a connection
                 HttpListenerContext ctx = await listener.GetContextAsync();
 
-                // Peel out the requests and response objects
                 HttpListenerRequest req = ctx.Request;
                 HttpListenerResponse resp = ctx.Response;
 
                 if (req.Url.AbsolutePath != "/favorevole")
                     pageViews += 1;
-                // Print out some info about the request
                 Console.WriteLine("Request #: {0}", ++requestCount);
                 Console.WriteLine(req.Url.ToString());
                 Console.WriteLine(req.HttpMethod);
@@ -120,28 +110,20 @@ namespace serverWEB {
                 Console.WriteLine(req.UserAgent);
                 Console.WriteLine();
 
-                // If `shutdown` url requested w/ POST, then shutdown the server after serving the page
                 if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/favorevole")) {
                     Console.WriteLine("Favorevole requested");
                     favorevoli++;
                 }
-
-                // Make sure we don't increment the page views counter if `favicon.ico` is requested
-
-
-                // Write the response info
                 string disableSubmit = !runServer ? "disabled" : "";
                 byte[] data = Encoding.UTF8.GetBytes(loginPage);
                 resp.ContentType = "text/html";
                 resp.ContentEncoding = Encoding.UTF8;
                 resp.ContentLength64 = data.LongLength;
-
-                // Write out to the response stream (asynchronously), then close it
+                
                 await resp.OutputStream.WriteAsync(data, 0, data.Length);
                 resp.Close();
             }
         }
-
         public void listen() {
             Task listenTask = HandleIncomingConnections();
             listenTask.GetAwaiter().GetResult();

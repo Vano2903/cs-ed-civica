@@ -8,19 +8,19 @@
     ".NETCoreApp,Version=v3.1": []
   },
   "packageFolders": {
-    "C:\\Users\\vanoncini.18008\\.nuget\\packages\\": {}
+    "C:\\Users\\vano\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\vanoncini.18008\\Desktop\\c#\\cs-ed-civica\\ed-civica\\ed-civica.csproj",
+      "projectUniqueName": "C:\\Users\\vano\\Desktop\\ed-civica\\ed-civica\\ed-civica.csproj",
       "projectName": "ed-civica",
-      "projectPath": "C:\\Users\\vanoncini.18008\\Desktop\\c#\\cs-ed-civica\\ed-civica\\ed-civica.csproj",
-      "packagesPath": "C:\\Users\\vanoncini.18008\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\vanoncini.18008\\Desktop\\c#\\cs-ed-civica\\ed-civica\\obj\\",
+      "projectPath": "C:\\Users\\vano\\Desktop\\ed-civica\\ed-civica\\ed-civica.csproj",
+      "packagesPath": "C:\\Users\\vano\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\vano\\Desktop\\ed-civica\\ed-civica\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\vanoncini.18008\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\vano\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -60,7 +60,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.104\\RuntimeIdentifierGraph.json"
       }
     }
   }

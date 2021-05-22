@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,9 +18,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// baseLink := http.FileServer(http.Dir("./pages/login"))
 	http.HandleFunc("/", loginHandler)
-	// http.HandleFunc("/api/user/signup", handleSingUp)
 
 	log.Println("inizio server sulla porta 8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

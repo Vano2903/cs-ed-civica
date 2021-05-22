@@ -10,9 +10,50 @@ namespace serverWEB {
 
     }
 
+    class token {
+        private int position;
+        private string tok; //tik
+
+        private string genRandomPart() {
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var stringChars = new char[5];
+            var random = new Random();
+            for (int i = 0; i < stringChars.Length; i++) {
+                stringChars[i] = chars[random.Next(chars.Length)];
+            }
+
+            return new String(stringChars);
+        }
+        private string genNumPart(int pos) {
+            string filler = "";
+            if (pos < 100 && pos >= 10) {
+                filler += "0";
+            } else if (pos < 10 && pos >= 1) {
+                filler += "00";
+            }
+            return pos.ToString() + filler;
+        }
+
+        public token() {
+            position = 0;
+            tok = "";
+        }
+        public bool genToken(int pos) {
+            if(pos > 0 && pos < 1000) {
+
+                tok += genNumPart(pos) + genRandomPart();
+                return true;
+            }
+            return false;
+        }
+        public string getToken() {
+            return tok;
+        }
+    }
+
     class voter {
         private int id;
-        private string token;
+        private token token;
         private string email;
         private string password;
         private bool voted;
@@ -109,6 +150,9 @@ namespace serverWEB {
     
     class program {
         public static void Main(string[] args) {
+            token t = new token();
+            t.genToken(100);
+            Console.WriteLine(t.getToken());
             server s = new server();
             s.init();
             s.start();

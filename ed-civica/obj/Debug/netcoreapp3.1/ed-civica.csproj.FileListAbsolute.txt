@@ -11,3 +11,16 @@ C:\Users\vano\Desktop\programming\c#\ed-civica\ed-civica\obj\Debug\netcoreapp3.1
 C:\Users\vano\Desktop\programming\c#\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.dll
 C:\Users\vano\Desktop\programming\c#\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.pdb
 C:\Users\vano\Desktop\programming\c#\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.genruntimeconfig.cache
+C:\Users\vano\Desktop\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.csprojAssemblyReference.cache
+C:\Users\vano\Desktop\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.AssemblyInfoInputs.cache
+C:\Users\vano\Desktop\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.AssemblyInfo.cs
+C:\Users\vano\Desktop\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.csproj.CoreCompileInputs.cache
+C:\Users\vano\Desktop\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.dll
+C:\Users\vano\Desktop\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.pdb
+C:\Users\vano\Desktop\ed-civica\ed-civica\bin\Debug\netcoreapp3.1\ed-civica.exe
+C:\Users\vano\Desktop\ed-civica\ed-civica\bin\Debug\netcoreapp3.1\ed-civica.deps.json
+C:\Users\vano\Desktop\ed-civica\ed-civica\bin\Debug\netcoreapp3.1\ed-civica.runtimeconfig.json
+C:\Users\vano\Desktop\ed-civica\ed-civica\bin\Debug\netcoreapp3.1\ed-civica.runtimeconfig.dev.json
+C:\Users\vano\Desktop\ed-civica\ed-civica\bin\Debug\netcoreapp3.1\ed-civica.dll
+C:\Users\vano\Desktop\ed-civica\ed-civica\bin\Debug\netcoreapp3.1\ed-civica.pdb
+C:\Users\vano\Desktop\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.genruntimeconfig.cache

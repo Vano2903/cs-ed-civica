@@ -18,42 +18,48 @@ namespace serverWEB {
         private bool voted;
         private int vote;
         private int position;
-
-
     }
 
-    //classe che gestisce le operazione del server
-    class presidente {
+    class server {
         private List<voter> voters;
+        //for webserver
+        private HttpListener listener;
+        private string url = "http://localhost:8000/";
+        private int pageViews = 0;
+        private int favorevoli = 0;
+        private int requestCount = 0;
+        private string loginPage;
+        private bool runServer = true;
 
-        public presidente() {
+        public server() {
+            listener = new HttpListener();
             voters = new List<voter>();
-
         }
-        public void openLogin() { }
 
-        public string printRelazione() {
-            return "";
+        public void start() {
+            listener.Prefixes.Add(url);
+            listener.Start();
         }
-    }
 
-    class HttpServer {
-        public static HttpListener listener;
-        public static string url = "http://localhost:8000/";
-        public static int pageViews = 0;
-        public static int favorevoli = 0;
-        public static int requestCount = 0;
-        public static string loginPage;
+        public void stop() {
+            runServer = false;
+        }
 
-        public static void init() {
+        public void restart() {
+            runServer = true;
+        }
+
+        public void kill() {
+            listener.Close();
+        }
+
+        public void init() {
             StreamReader sr = new StreamReader(@"pages\login.html");
             loginPage = sr.ReadToEnd();
             sr.Close();
         }
 
-        public static async Task HandleIncomingConnections() {
-            bool runServer = true;
-
+        public async Task HandleIncomingConnections() {
             // While a user hasn't visited the `shutdown` url, keep on handling requests
             while (runServer) {
                 // Will wait here until we hear from a connection
@@ -95,21 +101,18 @@ namespace serverWEB {
             }
         }
 
-
-        public static void Main(string[] args) {
-            init();
-            // Create a Http server and start listening for incoming connections
-            listener = new HttpListener();
-            listener.Prefixes.Add(url);
-            listener.Start();
-            Console.WriteLine("Listening for connections on {0}", url);
-
-            // Handle requests
+        public void listen() {
             Task listenTask = HandleIncomingConnections();
             listenTask.GetAwaiter().GetResult();
-
-            // Close the listener
-            listener.Close();
+        }
+    }
+    
+    class program {
+        public static void Main(string[] args) {
+            server s = new server();
+            s.init();
+            s.start();
+            s.listen();
         }
     }
 }

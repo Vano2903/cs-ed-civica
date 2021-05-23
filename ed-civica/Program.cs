@@ -6,10 +6,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace serverWEB {
-    class loaders {
-        private token to;
-    }
-
     class token {
         private int position;
         private string tok; //tik
@@ -94,7 +90,8 @@ namespace serverWEB {
             voters = new List<voter>();
         }
         public string genLoginsCode() {
-
+            //id;nome;cognome;email;password
+            //1;vano;van;vanella;vanella!!!
         }
         public bool checkLogin(string log) {//log = token;email;password
             return users.Contains(log);

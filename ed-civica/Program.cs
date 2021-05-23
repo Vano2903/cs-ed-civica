@@ -4,12 +4,15 @@ using System.Text;
 using System.Net;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace serverWEB {
     class token {
-        private int position;
         private string tok; //tik
 
+        public token() {
+            tok = "";
+        }
         private string genRandomPart() {
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             var stringChars = new char[5];
@@ -27,16 +30,10 @@ namespace serverWEB {
             } else if (pos < 10 && pos >= 1) {
                 filler += "00";
             }
-            return pos.ToString() + filler;
-        }
-
-        public token() {
-            position = 0;
-            tok = "";
+            return filler+ pos.ToString();
         }
         public bool genToken(int pos) {
             if(pos > 0 && pos < 1000) {
-
                 tok += genNumPart(pos) + genRandomPart();
                 return true;
             }
@@ -53,7 +50,7 @@ namespace serverWEB {
         private string name;
         private string lastName;
         private string email;
-        private string password; //problema si sicurezza 
+        private string password; //problema si sicurezza (possibile risolvere con funzione hash)
         private bool voted;
         private int vote; //0 nullo, 1 conferma, 2 non conferma
         private int position;
@@ -69,32 +66,77 @@ namespace serverWEB {
             vote = 0;
             position = Position;
         }
+        
+        public string loginString() {
+            return email +";"+ password +";"+ token;
+        }
     }
 
     class server {
         private List<voter> voters;
-        private List<string> users;
-        //for webserver
-        private HttpListener listener;
-        private string url = "http://localhost:8000/";
+        private List<string> usersForLogin;
         private int pageViews = 0;
         private int favorevoli = 0;
         private int requestCount = 0;
         private string loginPage;
         private string votePage;
         private string monitorPage;
+        //for webserver
+        private string url = "http://localhost:8000/";
+        private HttpListener listener;
         private bool runServer = true;
 
         public server() {
             listener = new HttpListener();
             voters = new List<voter>();
+            usersForLogin = new List<string>();
         }
-        public string genLoginsCode() {
-            //id;nome;cognome;email;password
-            //1;vano;van;vanella;vanella!!!
+        public void genLoginsCode() {
+            int pos = 1;
+            StreamReader sr = new StreamReader(@"config/test.txt");
+            string toSplit = sr.ReadToEnd();
+            sr.Close();
+            Console.WriteLine(toSplit);
+            foreach(var user in toSplit.Split("\n").ToList()) {
+                //var toAdd = new System.Text.StringBuilder();
+                var toAdd = "";
+                token t = new token();
+                t.genToken(pos);
+                var element = user.Split(";");
+                Console.WriteLine("element[0]: " + element[0]);
+                Console.WriteLine("element[1]: " + element[1]);
+                Console.WriteLine("element[2]: " + element[2]);
+                Console.WriteLine("element[3]: " + element[3]);
+                Console.WriteLine("element[4]: " + element[4]);
+                //var useless = new voter(int.Parse(element[0]), t.toString(), element[1], element[2], element[3], element[4], pos);
+                /*toAdd.Append(element[3]);// +";" + element[4] + ";" + t.toString());
+                Console.WriteLine("element3: " + toAdd.ToString());
+                toAdd.Append(";");
+                Console.WriteLine("1 ;: " + toAdd.ToString());
+                toAdd.Append(element[4]);
+                Console.WriteLine("element4: " + toAdd.ToString());
+                toAdd.Append(";");
+                Console.WriteLine("; 2: " + toAdd.ToString());
+                toAdd.Append(t.ToString());
+                Console.WriteLine("token: "+toAdd.ToString());*/
+                toAdd = element[3];// + ";" + element[4] + ";" + t.getToken();
+                Console.WriteLine("element3: " + toAdd);
+                toAdd += ";";
+                Console.WriteLine("1 ;: " + toAdd);
+                toAdd += element[4];
+                Console.WriteLine("element4: " + toAdd);
+                toAdd += ";";
+                Console.WriteLine("; 2: " + toAdd);
+                toAdd += "quella puttana di mammita";//t.getToken();
+                Console.WriteLine("token: " + toAdd);
+                   //toAdd = string.Concat(element[3], ";", element[4], ";", t.getToken());
+                   //toAdd = String.Format("{0};{1};{2}", element[3], element[4], t.toString());
+                usersForLogin.Add(toAdd);
+                pos++;
+            }
         }
         public bool checkLogin(string log) {//log = token;email;password
-            return users.Contains(log);
+            return usersForLogin.Contains(log);
         }
         public void start() {
             listener.Prefixes.Add(url);
@@ -158,15 +200,22 @@ namespace serverWEB {
                 Console.WriteLine(e);
             }
         }
+        public void printUsersForLogin() {
+            foreach(var u in usersForLogin) {
+                Console.WriteLine(u);
+            }
+        }
     }
-    
+
     class program {
         public static void Main(string[] args) {
             token t = new token();
-            t.genToken(100);
+            t.genToken(1);
             Console.WriteLine(t.getToken());
             server s = new server();
             s.init();
+            s.genLoginsCode();
+            s.printUsersForLogin();
             s.start();
             s.listen();
         }

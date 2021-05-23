@@ -6,10 +6,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace serverWEB {
-    class monitor {
-
-    }
-
     class token {
         private int position;
         private string tok; //tik
@@ -70,6 +66,8 @@ namespace serverWEB {
         private int favorevoli = 0;
         private int requestCount = 0;
         private string loginPage;
+        private string votePage;
+        private string monitorPage;
         private bool runServer = true;
 
         public server() {
@@ -97,36 +95,46 @@ namespace serverWEB {
         public async Task HandleIncomingConnections() {
             while (runServer) {
                 HttpListenerContext ctx = await listener.GetContextAsync();
-
                 HttpListenerRequest req = ctx.Request;
                 HttpListenerResponse resp = ctx.Response;
 
-                if (req.Url.AbsolutePath != "/favorevole")
-                    pageViews += 1;
-                Console.WriteLine("Request #: {0}", ++requestCount);
-                Console.WriteLine(req.Url.ToString());
-                Console.WriteLine(req.HttpMethod);
-                Console.WriteLine(req.UserHostName);
-                Console.WriteLine(req.UserAgent);
-                Console.WriteLine();
+                if((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/")) {
+                    byte[] data = Encoding.UTF8.GetBytes(loginPage);
+                    resp.ContentType = "text/html";
+                    resp.ContentEncoding = Encoding.UTF8;
+                    resp.ContentLength64 = data.LongLength;
+
+                    await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                    resp.Close();
+                }
 
                 if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/favorevole")) {
                     Console.WriteLine("Favorevole requested");
                     favorevoli++;
                 }
-                string disableSubmit = !runServer ? "disabled" : "";
+                
+                /*Console.WriteLine("Request #: {0}", ++requestCount);
+                Console.WriteLine(req.Url.ToString());
+                Console.WriteLine(req.HttpMethod);
+                Console.WriteLine(req.UserHostName);
+                Console.WriteLine(req.UserAgent);
+                Console.WriteLine();
                 byte[] data = Encoding.UTF8.GetBytes(loginPage);
                 resp.ContentType = "text/html";
                 resp.ContentEncoding = Encoding.UTF8;
                 resp.ContentLength64 = data.LongLength;
-                
+
                 await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                resp.Close();
+                resp.Close();*/
             }
         }
         public void listen() {
-            Task listenTask = HandleIncomingConnections();
-            listenTask.GetAwaiter().GetResult();
+            try {
+                Task listenTask = HandleIncomingConnections();
+                listenTask.GetAwaiter().GetResult();
+            } catch(Exception e) {
+                Console.WriteLine(e);
+            }
         }
     }
     

@@ -23,6 +23,7 @@ func (t Token) genRandomPart(dim int) string {
 	return string(b)
 }
 
+//generate token (postion + 5 random letters)
 func (t *Token) GenToken(pos int) error {
 	if pos > 0 && pos < 1000 {
 		var filler string
@@ -54,23 +55,34 @@ type Server struct {
 	UsersForLogin []string
 }
 
+//start the server and listen on localhost:8080
 func (s Server) Start() error {
 	http.HandleFunc("/", s.loginHandler)
 	return http.ListenAndServe(":8080", nil)
 }
 
+//handle the clients that connect to "/" and respond with the login page
 func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content Type", "text/html")
-	content, err := os.ReadFile("pages/login.html")
-	if err != nil {
-		log.Fatalln(err)
+	//return the login page if get method
+	if r.Method == "GET" {
+		w.Header().Add("Content Type", "text/html")
+		content, err := os.ReadFile("pages/login.html")
+		if err != nil {
+			log.Fatalln(err)
+			return
+		}
+		w.Write(content)
 		return
 	}
-	w.Write(content)
+
+	//check if the login is correct, if so open a websocket connection with client
+	if r.Method == "POST" {
+		
+	}
 }
 
 func main() {
 	var s Server
 	log.Println("inizio server sulla porta 8080")
-	s.Start()
+	log.Fatal(s.Start())
 }

@@ -141,7 +141,7 @@
         }
 
         button:hover+div h1,
-        button:hover+div label {
+        button:hover+div form label {
             color: #7a2322;
         }
 
@@ -151,11 +151,11 @@
             width: 10rem;
         }
 
-        button:hover+div input::placeholder {
+        button:hover+div form input::placeholder {
             color: #7a22229a
         }
 
-        button:hover+div input {
+        button:hover+div form input {
             border-color: rgba(165, 56, 56, 0.3);
         }
 
@@ -174,11 +174,16 @@
             background: linear-gradient(16deg, rgb(165, 56, 80) 15%, rgb(204, 101, 87) 74%);
             transform: scale(1.2);
         }
+
+        .error {
+            color: #7a2322;
+            font-style: bold;
+        }
     </style>
 </head>
 
 <body>
-    <button id="login">></button>
+    <button onclick="checkLogin()" id="login">></button>
     <div>
         <h1>LOGIN</h1>
         <div class="logArea">
@@ -189,33 +194,27 @@
             <label for="token">Token</label>
             <input type="token" id="token">
         </div>
+        <center>
+            <br>
+            <a id="error" class="error" style="display: none;">Alcuni campi non sono corretti</a>
+        </center>
         <div id="sphere1"></div>
         <div id="sphere2"></div>
         <div id="sphere3"></div>
     </div>
-    <!-- 
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
     <script>
-        $("#login").click(function () {
-            console.log("pressed")
-            $("button+div h1, button+div label").animate({
-                color: "#7a2322",
-            }, 1000, function () {
-            });
-        });
-
-        function declined() {
-            $("button+div h1, button+div label").animate({
-                color: "#7a2322",
-            })
+        function checkLogin() {
+            var email = document.getElementById("email").value;
+            var password = document.getElementById("password").value;
+            var token = document.getElementById("token").value;
+            if (email != "" && password != "" && token != "") {
+                document.getElementById("error").style.display = "none";
+            } else {
+                document.getElementById("error").style.display = "block";
+            }
         }
-
-        function accepted() {
-
-        }
-    </script> -->
+    </script>
 
 </body>
 

@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace serverWEB {
+    class loaders {
+        private token to;
+    }
+
     class token {
         private int position;
         private string tok; //tik
@@ -49,16 +53,31 @@ namespace serverWEB {
 
     class voter {
         private int id;
-        private token token;
+        private string token;
+        private string name;
+        private string lastName;
         private string email;
-        private string password;
+        private string password; //problema si sicurezza 
         private bool voted;
-        private int vote;
+        private int vote; //0 nullo, 1 conferma, 2 non conferma
         private int position;
+
+        public voter(int Id, string Token, string Name, string LastName, string Email, string Password, int Position) {
+            id = Id;
+            token = Token;
+            name = Name;
+            lastName = LastName;
+            email = Email;
+            password = Password;
+            voted = false;
+            vote = 0;
+            position = Position;
+        }
     }
 
     class server {
         private List<voter> voters;
+        private List<string> users;
         //for webserver
         private HttpListener listener;
         private string url = "http://localhost:8000/";
@@ -73,6 +92,12 @@ namespace serverWEB {
         public server() {
             listener = new HttpListener();
             voters = new List<voter>();
+        }
+        public string genLoginsCode() {
+
+        }
+        public bool checkLogin(string log) {//log = token;email;password
+            return users.Contains(log);
         }
         public void start() {
             listener.Prefixes.Add(url);

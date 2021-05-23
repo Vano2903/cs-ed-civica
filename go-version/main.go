@@ -2,16 +2,18 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
-//token
 type Token struct {
-	token string
+	Token string
 }
 
 func (t Token) genRandomPart(dim int) string {
@@ -32,7 +34,7 @@ func (t *Token) GenToken(pos int) error {
 		} else if pos < 10 && pos >= 1 {
 			filler += "00"
 		}
-		t.token = filler + strconv.Itoa(pos) + t.genRandomPart(5)
+		t.Token = filler + strconv.Itoa(pos) + t.genRandomPart(5)
 		return nil
 	}
 	return errors.New("invalid position")
@@ -55,16 +57,44 @@ type Server struct {
 	UsersForLogin []string
 }
 
+func (s *Server) init() error {
+	data, err := ioutil.ReadFile("config/senatore.txt")
+	if err != nil {
+		return err
+	}
+	datas := strings.Split(string(data), "\n")
+	for pos, data := range datas {
+		var t Token
+		elements := strings.Split(data, ";")
+		err := t.GenToken(pos + 1)
+		if err != nil {
+			return err
+		}
+		toAdd := elements[3] + ";" + elements[4] + ";" + t.Token
+		s.UsersForLogin = append(s.UsersForLogin, toAdd)
+	}
+	return nil
+}
+
 //start the server and listen on localhost:8080
 func (s Server) Start() error {
+
 	http.HandleFunc("/", s.loginHandler)
 	return http.ListenAndServe(":8080", nil)
 }
 
+func (s Server) PrintLogins() {
+	fmt.Println(s.init())
+	for _, a := range s.UsersForLogin {
+		fmt.Println(a)
+	}
+}
+
 //handle the clients that connect to "/" and respond with the login page
 func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
-	//return the login page if get method
-	if r.Method == "GET" {
+	switch r.Method {
+	//return the login page
+	case "GET":
 		w.Header().Add("Content Type", "text/html")
 		content, err := os.ReadFile("pages/login.html")
 		if err != nil {
@@ -73,16 +103,29 @@ func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write(content)
 		return
-	}
 
 	//check if the login is correct, if so open a websocket connection with client
-	if r.Method == "POST" {
-		
+	case "POST":
+		reqBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%s\n", reqBody)
+		w.Write([]byte("Received a POST request\n"))
+
+	default:
+		w.WriteHeader(http.StatusNotImplemented)
+		w.Write([]byte(http.StatusText(http.StatusNotImplemented)))
 	}
 }
 
 func main() {
 	var s Server
+
 	log.Println("inizio server sulla porta 8080")
-	log.Fatal(s.Start())
+	s.PrintLogins()
+	// s.init()
+	// fmt.Println(s.UsersForLogin[2])
+	// log.Fatal(s.Start())
+
 }

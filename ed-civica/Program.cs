@@ -15,12 +15,12 @@ namespace serverWEB {
         }
         private string genRandomPart() {
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var stringChars = new char[5];
+            var stringChars = new char[6];
             var random = new Random();
-            for (int i = 0; i < stringChars.Length; i++) {
+            for (int i = 0; i < stringChars.Length -1 ; i++) {
                 stringChars[i] = chars[random.Next(chars.Length)];
             }
-
+            stringChars[5] = '\0'; 
             return new String(stringChars);
         }
         private string genNumPart(int pos) {
@@ -74,7 +74,7 @@ namespace serverWEB {
 
     class server {
         private List<voter> voters;
-        private List<string> usersForLogin;
+        public List<string> usersForLogin;
         private int pageViews = 0;
         private int favorevoli = 0;
         private int requestCount = 0;
@@ -91,6 +91,7 @@ namespace serverWEB {
             voters = new List<voter>();
             usersForLogin = new List<string>();
         }
+        //CONTROLLA 
         public void genLoginsCode() {
             int pos = 1;
             StreamReader sr = new StreamReader(@"config/senatore.csv");
@@ -103,11 +104,11 @@ namespace serverWEB {
                 token t = new token();
                 t.genToken(pos);
                 var element = user.Split(";");
-                Console.WriteLine("element[0]: " + element[0]);
+                /*Console.WriteLine("element[0]: " + element[0]);
                 Console.WriteLine("element[1]: " + element[1]);
                 Console.WriteLine("element[2]: " + element[2]);
                 Console.WriteLine("element[3]: " + element[3]);
-                Console.WriteLine("element[4]: " + element[4]);
+                Console.WriteLine("element[4]: " + element[4]);*/
                 //var useless = new voter(int.Parse(element[0]), t.toString(), element[1], element[2], element[3], element[4], pos);
                 /*toAdd.Append(element[3]);// +";" + element[4] + ";" + t.toString());
                 Console.WriteLine("element3: " + toAdd.ToString());
@@ -129,6 +130,7 @@ namespace serverWEB {
                 //Console.WriteLine("; 2: " + toAdd);
                 toAdd += t.getToken();
                 //Console.WriteLine("token: " + toAdd);
+                Console.WriteLine("toAdd:" + toAdd);
                 usersForLogin.Add(toAdd);
                 pos++;
             }
@@ -201,6 +203,7 @@ namespace serverWEB {
         public void printUsersForLogin() {
             foreach(var u in usersForLogin) {
                 Console.WriteLine(u);
+                Console.ReadLine();
             }
         }
     }
@@ -213,6 +216,7 @@ namespace serverWEB {
             server s = new server();
             s.init();
             s.genLoginsCode();
+            //Console.WriteLine(s.usersForLogin[2]);
             s.printUsersForLogin();
             s.start();
             s.listen();

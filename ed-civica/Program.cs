@@ -93,7 +93,7 @@ namespace serverWEB {
         }
         public void genLoginsCode() {
             int pos = 1;
-            StreamReader sr = new StreamReader(@"config/test.txt");
+            StreamReader sr = new StreamReader(@"config/senatore.csv");
             string toSplit = sr.ReadToEnd();
             sr.Close();
             Console.WriteLine(toSplit);
@@ -120,17 +120,15 @@ namespace serverWEB {
                 toAdd.Append(t.ToString());
                 Console.WriteLine("token: "+toAdd.ToString());*/
                 toAdd = element[3];// + ";" + element[4] + ";" + t.getToken();
-                Console.WriteLine("element3: " + toAdd);
+                //Console.WriteLine("element3: " + toAdd);
                 toAdd += ";";
-                Console.WriteLine("1 ;: " + toAdd);
+                //Console.WriteLine("1 ;: " + toAdd);
                 toAdd += element[4];
-                Console.WriteLine("element4: " + toAdd);
+                //Console.WriteLine("element4: " + toAdd);
                 toAdd += ";";
-                Console.WriteLine("; 2: " + toAdd);
-                toAdd += "quella puttana di mammita";//t.getToken();
-                Console.WriteLine("token: " + toAdd);
-                   //toAdd = string.Concat(element[3], ";", element[4], ";", t.getToken());
-                   //toAdd = String.Format("{0};{1};{2}", element[3], element[4], t.toString());
+                //Console.WriteLine("; 2: " + toAdd);
+                toAdd += t.getToken();
+                //Console.WriteLine("token: " + toAdd);
                 usersForLogin.Add(toAdd);
                 pos++;
             }

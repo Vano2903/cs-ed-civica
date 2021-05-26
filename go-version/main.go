@@ -7,7 +7,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -58,10 +57,8 @@ type Server struct {
 }
 
 func (s *Server) init() error {
-	data, err := ioutil.ReadFile("config/senatore.txt")
-	if err != nil {
-		return err
-	}
+	data := ReadFile("config/senatore.txt")
+	// datas := File.Read(data)
 	datas := strings.Split(string(data), "\n")
 	for pos, data := range datas {
 		var t Token
@@ -96,11 +93,10 @@ func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	//return the login page
 	case "GET":
 		w.Header().Add("Content Type", "text/html")
-		content, err := os.ReadFile("pages/login.html")
-		if err != nil {
-			log.Fatalln(err)
-			return
-		}
+
+		// content, err := os.Open("config/senatore.txt")
+		content := ReadFile("pages/login.html")
+		// fmt.Println(content)
 		w.Write(content)
 		return
 
@@ -124,8 +120,7 @@ func main() {
 
 	log.Println("inizio server sulla porta 8080")
 	s.PrintLogins()
-	// s.init()
-	// fmt.Println(s.UsersForLogin[2])
-	// log.Fatal(s.Start())
+	s.init()
+	log.Fatal(s.Start())
 
 }

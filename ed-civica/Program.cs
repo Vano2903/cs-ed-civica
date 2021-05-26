@@ -185,10 +185,7 @@ namespace serverWEB {
                 Console.WriteLine("req.ContentType: " + req.ContentType);
                 Console.WriteLine("req.Headers: " + req.Headers);
 
-                Stream stream = req.InputStream;
-                StreamReader sr = new StreamReader(stream, Encoding.UTF8);
-                string content = sr.ReadToEnd();
-                Console.WriteLine(content);
+                
 
                 //Console.WriteLine("req.InputStream: " + req.InputStream.ReadAsync());
                 Console.WriteLine("req.Url: " + req.Url);
@@ -206,7 +203,18 @@ namespace serverWEB {
 
                     if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/")) {
                         Console.WriteLine("Favorevole requested");
-                        favorevoli++;
+                        Stream stream = req.InputStream;
+                        StreamReader sr = new StreamReader(stream, Encoding.UTF8);
+                        string content = sr.ReadToEnd();
+                        Console.WriteLine(content);
+
+                        byte[] data = Encoding.UTF8.GetBytes("hewwo");
+                        resp.ContentType = "text/html";
+                        resp.ContentEncoding = Encoding.UTF8;
+                        resp.ContentLength64 = data.LongLength;
+
+                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                        resp.Close();
                     }
 
                     /*Console.WriteLine("Request #: {0}", ++requestCount);
@@ -221,7 +229,7 @@ namespace serverWEB {
                     resp.ContentLength64 = data.LongLength;
 
                     await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                    resp.Close();*/
+                    */
                 }
             }
         }

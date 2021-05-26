@@ -8,7 +8,7 @@ using System.Linq;
 using Newtonsoft.Json;
 
 namespace serverWEB {
-    struct usersJson{
+    struct usersJson {
         public int id;
         public string name;
         public string lastName;
@@ -26,10 +26,10 @@ namespace serverWEB {
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             var stringChars = new char[6];
             var random = new Random();
-            for (int i = 0; i < stringChars.Length -1 ; i++) {
+            for (int i = 0; i < stringChars.Length - 1; i++) {
                 stringChars[i] = chars[random.Next(chars.Length)];
             }
-            stringChars[5] = '\0'; 
+            stringChars[5] = '\0';
             return new String(stringChars);
         }
         private string genNumPart(int pos) {
@@ -39,10 +39,10 @@ namespace serverWEB {
             } else if (pos < 10 && pos >= 1) {
                 filler += "00";
             }
-            return filler+ pos.ToString();
+            return filler + pos.ToString();
         }
         public bool genToken(int pos) {
-            if(pos > 0 && pos < 1000) {
+            if (pos > 0 && pos < 1000) {
                 tok += genNumPart(pos) + genRandomPart();
                 return true;
             }
@@ -75,9 +75,9 @@ namespace serverWEB {
             vote = 0;
             position = Position;
         }
-        
+
         public string loginString() {
-            return email +";"+ password +";"+ token;
+            return email + ";" + password + ";" + token;
         }
     }
 
@@ -103,7 +103,6 @@ namespace serverWEB {
             usersFromJson = JsonConvert.DeserializeObject<List<usersJson>>(json);
             sr.Close();
         }
-
         //costruttore
         public server() {
             listener = new HttpListener();
@@ -111,8 +110,6 @@ namespace serverWEB {
             usersForLogin = new List<string>();
             usersFromJson = new List<usersJson>();
         }
-
-        //CONTROLLA 
         public void genLoginsCode() {
             //versione con json
             loadUsers();
@@ -163,79 +160,83 @@ namespace serverWEB {
             loginPage = sr.ReadToEnd();
             sr.Close();
         }
+        public void listen() {
+            try {
+                Task listenTask = HandleIncomingConnections();
+                listenTask.GetAwaiter().GetResult();
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
+        }
+        public void printUsersForLogin() {
+            foreach (var u in usersForLogin) {
+                Console.WriteLine(u);
+            }
+        }
         public async Task HandleIncomingConnections() {
             while (runServer) {
                 HttpListenerContext ctx = await listener.GetContextAsync();
                 HttpListenerRequest req = ctx.Request;
                 HttpListenerResponse resp = ctx.Response;
 
-                if((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/")) {
+                //Console.WriteLine("reps: " + resp.ToString());
+                Console.WriteLine("req.AcceptTypes: " + req.AcceptTypes);
+                Console.WriteLine("req.ContentEncoding: " + req.ContentEncoding);
+                Console.WriteLine("req.ContentType: " + req.ContentType);
+                Console.WriteLine("req.Headers: " + req.Headers);
+
+                Stream stream = req.InputStream;
+                StreamReader sr = new StreamReader(stream, Encoding.UTF8);
+                string content = sr.ReadToEnd();
+                Console.WriteLine(content);
+
+                //Console.WriteLine("req.InputStream: " + req.InputStream.ReadAsync());
+                Console.WriteLine("req.Url: " + req.Url);
+
+                if (req.Url.AbsolutePath != "/favicon.ico") {
+                    if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/")) {
+                        byte[] data = Encoding.UTF8.GetBytes(loginPage);
+                        resp.ContentType = "text/html";
+                        resp.ContentEncoding = Encoding.UTF8;
+                        resp.ContentLength64 = data.LongLength;
+
+                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                        resp.Close();
+                    }
+
+                    if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/")) {
+                        Console.WriteLine("Favorevole requested");
+                        favorevoli++;
+                    }
+
+                    /*Console.WriteLine("Request #: {0}", ++requestCount);
+                    Console.WriteLine(req.Url.ToString());
+                    Console.WriteLine(req.HttpMethod);
+                    Console.WriteLine(req.UserHostName);
+                    Console.WriteLine(req.UserAgent);
+                    Console.WriteLine();
                     byte[] data = Encoding.UTF8.GetBytes(loginPage);
                     resp.ContentType = "text/html";
                     resp.ContentEncoding = Encoding.UTF8;
                     resp.ContentLength64 = data.LongLength;
 
                     await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                    resp.Close();
+                    resp.Close();*/
                 }
-
-                if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/favorevole")) {
-                    Console.WriteLine("Favorevole requested");
-                    favorevoli++;
-                }
-
-                /*Console.WriteLine("Request #: {0}", ++requestCount);
-                Console.WriteLine(req.Url.ToString());
-                Console.WriteLine(req.HttpMethod);
-                Console.WriteLine(req.UserHostName);
-                Console.WriteLine(req.UserAgent);
-                Console.WriteLine();
-                byte[] data = Encoding.UTF8.GetBytes(loginPage);
-                resp.ContentType = "text/html";
-                resp.ContentEncoding = Encoding.UTF8;
-                resp.ContentLength64 = data.LongLength;
-
-                await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                resp.Close();*/
-            }
-        }
-        public void listen() {
-            try {
-                Task listenTask = HandleIncomingConnections();
-                listenTask.GetAwaiter().GetResult();
-            } catch(Exception e) {
-                Console.WriteLine(e);
-            }
-        }
-        public void printUsersForLogin() {
-            foreach(var u in usersForLogin) {
-                /*Console.WriteLine(u.id);
-                Console.WriteLine(u.lastName);
-                Console.WriteLine(u.name);
-                Console.WriteLine(u.email);
-                Console.WriteLine(u.password);*/
-
-                Console.WriteLine(u);
-                Console.ReadLine();
             }
         }
     }
 
     class program {
         public static void Main(string[] args) {
-            token t = new token();
-            t.genToken(1);
-            Console.WriteLine(t.getToken());
             server s = new server();
             s.init();
             s.genLoginsCode();
-            s.printUsersForLogin();
-            //Console.WriteLine(s.usersForLogin[2]);
-            //var a = s.usersForLogin[1].Split(";");
-            //Console.WriteLine("ciaoo:" + a[0] + ";" + a[1] + ";" + a[2]);
+            //s.printUsersForLogin();
+            Console.WriteLine("ascolto sulla porta 8000");
             s.start();
             s.listen();
-            
         }
+
     }
 }

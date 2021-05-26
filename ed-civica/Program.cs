@@ -5,8 +5,17 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace serverWEB {
+    struct usersJson{
+        public int id;
+        public string name;
+        public string lastName;
+        public string email;
+        public string password;
+        public string token;
+    }
     class token {
         private string tok; //tik
 
@@ -75,6 +84,7 @@ namespace serverWEB {
     class server {
         private List<voter> voters;
         public List<string> usersForLogin;
+        private List<usersJson> usersFromJson;
         private int pageViews = 0;
         private int favorevoli = 0;
         private int requestCount = 0;
@@ -86,14 +96,36 @@ namespace serverWEB {
         private HttpListener listener;
         private bool runServer = true;
 
+        //carica i senatori dal json
+        private void loadUsers() {
+            StreamReader sr = new StreamReader(@"config\senatore.json");
+            string json = sr.ReadToEnd();
+            usersFromJson = JsonConvert.DeserializeObject<List<usersJson>>(json);
+            sr.Close();
+        }
+
+        //costruttore
         public server() {
             listener = new HttpListener();
             voters = new List<voter>();
             usersForLogin = new List<string>();
+            usersFromJson = new List<usersJson>();
         }
+
         //CONTROLLA 
         public void genLoginsCode() {
+            //versione con json
+            loadUsers();
             int pos = 1;
+            foreach (var user in usersFromJson) {
+                token t = new token();
+                var toAdd = user.email + ";" + user.password + ";" + t.genToken(pos);
+                usersForLogin.Add(toAdd);
+                pos++;
+            }
+
+            //versione con il csv
+            /*int pos = 1;
             StreamReader sr = new StreamReader(@"config/senatore.csv");
             string toSplit = sr.ReadToEnd();
             sr.Close();
@@ -104,36 +136,11 @@ namespace serverWEB {
                 token t = new token();
                 t.genToken(pos);
                 var element = user.Split(";");
-                /*Console.WriteLine("element[0]: " + element[0]);
-                Console.WriteLine("element[1]: " + element[1]);
-                Console.WriteLine("element[2]: " + element[2]);
-                Console.WriteLine("element[3]: " + element[3]);
-                Console.WriteLine("element[4]: " + element[4]);*/
-                //var useless = new voter(int.Parse(element[0]), t.toString(), element[1], element[2], element[3], element[4], pos);
-                /*toAdd.Append(element[3]);// +";" + element[4] + ";" + t.toString());
-                Console.WriteLine("element3: " + toAdd.ToString());
-                toAdd.Append(";");
-                Console.WriteLine("1 ;: " + toAdd.ToString());
-                toAdd.Append(element[4]);
-                Console.WriteLine("element4: " + toAdd.ToString());
-                toAdd.Append(";");
-                Console.WriteLine("; 2: " + toAdd.ToString());
-                toAdd.Append(t.ToString());
-                Console.WriteLine("token: "+toAdd.ToString());*/
-                toAdd = element[3];// + ";" + element[4] + ";" + t.getToken();
-                //Console.WriteLine("element3: " + toAdd);
-                toAdd += ";";
-                //Console.WriteLine("1 ;: " + toAdd);
-                toAdd += element[4];
-                //Console.WriteLine("element4: " + toAdd);
-                toAdd += ";";
-                //Console.WriteLine("; 2: " + toAdd);
-                toAdd += t.getToken();
-                //Console.WriteLine("token: " + toAdd);
+                toAdd = element[3] + ";" + element[4] + ";" + t.getToken();
                 Console.WriteLine("toAdd:" + toAdd);
                 usersForLogin.Add(toAdd);
                 pos++;
-            }
+            }*/
         }
         public bool checkLogin(string log) {//log = token;email;password
             return usersForLogin.Contains(log);
@@ -176,7 +183,7 @@ namespace serverWEB {
                     Console.WriteLine("Favorevole requested");
                     favorevoli++;
                 }
-                
+
                 /*Console.WriteLine("Request #: {0}", ++requestCount);
                 Console.WriteLine(req.Url.ToString());
                 Console.WriteLine(req.HttpMethod);
@@ -202,6 +209,12 @@ namespace serverWEB {
         }
         public void printUsersForLogin() {
             foreach(var u in usersForLogin) {
+                /*Console.WriteLine(u.id);
+                Console.WriteLine(u.lastName);
+                Console.WriteLine(u.name);
+                Console.WriteLine(u.email);
+                Console.WriteLine(u.password);*/
+
                 Console.WriteLine(u);
                 Console.ReadLine();
             }
@@ -216,10 +229,13 @@ namespace serverWEB {
             server s = new server();
             s.init();
             s.genLoginsCode();
-            //Console.WriteLine(s.usersForLogin[2]);
             s.printUsersForLogin();
+            //Console.WriteLine(s.usersForLogin[2]);
+            //var a = s.usersForLogin[1].Split(";");
+            //Console.WriteLine("ciaoo:" + a[0] + ";" + a[1] + ";" + a[2]);
             s.start();
             s.listen();
+            
         }
     }
 }

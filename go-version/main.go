@@ -151,9 +151,9 @@ func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var s Server
-	log.Println("inizio server sulla porta 8080")
 	s.PrintLogins()
 	s.init()
 	log.Fatal(s.Start())
+	log.Println("inizio server sulla porta 8080")
 
 }

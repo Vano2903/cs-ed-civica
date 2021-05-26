@@ -37,3 +37,5 @@ C:\Users\vanoncini.18008\Desktop\c#\cs-ed-civica\ed-civica\obj\Debug\netcoreapp3
 C:\Users\vanoncini.18008\Desktop\c#\cs-ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.dll
 C:\Users\vanoncini.18008\Desktop\c#\cs-ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.pdb
 C:\Users\vanoncini.18008\Desktop\c#\cs-ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.genruntimeconfig.cache
+C:\Users\vano\Desktop\ed-civica\ed-civica\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
+C:\Users\vano\Desktop\ed-civica\ed-civica\obj\Debug\netcoreapp3.1\ed-civica.csproj.CopyComplete

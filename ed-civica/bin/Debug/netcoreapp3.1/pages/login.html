@@ -201,16 +201,23 @@
             var psw = document.getElementById("password").value;
             var token = document.getElementById("token").value;
             var data = email + ";" + psw + ";" + token;
-            http.open('POST', "localhost:8000/", true);
-            http.setRequestHeader('Content-type', 'text/plain');
 
-            http.onreadystatechange = function () {
-                if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
-                    console.log(http.responseText);
-                }
-            }
+            fetch('/', {
+                method: "POST",
+                body: data
+            }).then(response => response.json())
+                .then(data => console.log(data));
 
-            http.send(data);
+            // http.open('POST', "localhost:8000/", true);
+            // http.setRequestHeader('Content-type', 'text/plain');
+
+            // http.onreadystatechange = function () {
+            //     if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+            //         console.log(http.responseText);
+            //     }
+            // }
+
+            // http.send(data);
         }
     </script>
 

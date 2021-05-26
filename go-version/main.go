@@ -51,12 +51,11 @@ type Voter struct {
 
 type Server struct {
 	Voters        []Voter
-	UsersForLogin map[string]string
+	UsersForLogin []string
 	UsersFromFile []string
 }
 
 func (s *Server) init() error {
-	s.UsersForLogin = make(map[string]string)
 	data := ReadFile("config/senatore.txt")
 	// datas := File.Read(data)
 	datas := strings.Split(string(data), "\n")
@@ -69,7 +68,7 @@ func (s *Server) init() error {
 			return err
 		}
 		toAdd := elements[3] + ";" + elements[4] + ";" + t.Token
-		s.UsersForLogin[t.Token] = toAdd
+		s.UsersForLogin = append(s.UsersForLogin, toAdd)
 	}
 	return nil
 }
@@ -92,28 +91,29 @@ func (s Server) PrintLogins() {
 func (s *Server) CheckLoginAndAdd(login string) bool {
 	//split the login string
 	elements := strings.Split(login, ";")
-	correctLogin, exist := s.UsersForLogin[elements[2]]
-	//if given token exist
-	if exist {
-		//check if login is the same as loaded from file
+	var exist bool = false
+	for _, correctLogin := range s.UsersForLogin {
 		if correctLogin == login {
-			var toAdd Voter
-			var fullVoterElements []string
-			var i int
-			for _, check := range s.UsersForLogin {
-				if check == login {
-					fullVoterElements = strings.Split(s.UsersFromFile[i], ";")
-				}
-				i++
-			}
-			//create Voter object
-			id, _ := strconv.Atoi(fullVoterElements[0])
-			toAdd.Id = id
-			toAdd.Token = elements[2]
-			toAdd.Name = fullVoterElements[1]
-			toAdd.LastName = fullVoterElements[2]
-			s.Voters = append(s.Voters, toAdd)
+			exist = true
+			break
 		}
+	}
+	//if login is correct
+	if exist {
+		var toAdd Voter
+		var fullVoterElements []string
+		for i, check := range s.UsersForLogin {
+			if check == login {
+				fullVoterElements = strings.Split(s.UsersFromFile[i], ";")
+			}
+		}
+		//create Voter object
+		id, _ := strconv.Atoi(fullVoterElements[0])
+		toAdd.Id = id
+		toAdd.Token = elements[2]
+		toAdd.Name = fullVoterElements[1]
+		toAdd.LastName = fullVoterElements[2]
+		s.Voters = append(s.Voters, toAdd)
 	}
 	return exist
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace serverWEB {
     struct usersJson {
@@ -24,12 +25,12 @@ namespace serverWEB {
         }
         private string genRandomPart() {
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var stringChars = new char[6];
+            var stringChars = new char[5];
             var random = new Random();
             for (int i = 0; i < stringChars.Length - 1; i++) {
                 stringChars[i] = chars[random.Next(chars.Length)];
             }
-            stringChars[5] = '\0';
+            //stringChars[5] = '\0';
             return new String(stringChars);
         }
         private string genNumPart(int pos) {
@@ -52,7 +53,6 @@ namespace serverWEB {
             return tok;
         }
     }
-
     class voter {
         private int id;
         private string token;
@@ -95,13 +95,41 @@ namespace serverWEB {
         private string url = "http://localhost:8000/";
         private HttpListener listener;
         private bool runServer = true;
-
+        
         //carica i senatori dal json
         private void loadUsers() {
             StreamReader sr = new StreamReader(@"config\senatore.json");
             string json = sr.ReadToEnd();
             usersFromJson = JsonConvert.DeserializeObject<List<usersJson>>(json);
             sr.Close();
+        }
+        //FUNZIONA ORA ;-;-;-; NON LO TOCCARE PER L'AMORE DIDDIO XD
+        //c'é un problema, se si guardano i byte di user si nota come alla fine ci sia uno 0 di cui non ne capisco il motivo quindi ho solamente tolto quello 0
+        private bool checkLogin(string log) {//log = token;email;password
+            foreach(var user in usersForLogin) {
+                byte[] logb = Encoding.UTF8.GetBytes(log.Trim());
+                byte[] userb = Encoding.UTF8.GetBytes(user.Trim());
+                //Console.Write("logb  ");
+                //for(int i = 0; i < logb.Length; i++) {
+                //    Console.Write(logb[i]);
+                //}
+                //Console.WriteLine();
+                //Console.Write("userb ");
+                //for (int i = 0; i < userb.Length; i++) {
+                //    Console.Write(userb[i]);
+                //}
+                //Console.WriteLine();
+                byte[] userbmin1 = new byte[userb.Length-1];
+                for(int i = 0; i < userb.Length-1; i++) {
+                    userbmin1[i] = userb[i];
+                }
+
+                if (logb.SequenceEqual(userbmin1)) {
+                    return true;
+                }
+            }
+            return false;
+            //return usersForLogin.Contains(log)
         }
         //costruttore
         public server() {
@@ -116,31 +144,12 @@ namespace serverWEB {
             int pos = 1;
             foreach (var user in usersFromJson) {
                 token t = new token();
-                var toAdd = user.email + ";" + user.password + ";" + t.genToken(pos);
-                usersForLogin.Add(toAdd);
-                pos++;
-            }
-
-            //versione con il csv
-            /*int pos = 1;
-            StreamReader sr = new StreamReader(@"config/senatore.csv");
-            string toSplit = sr.ReadToEnd();
-            sr.Close();
-            Console.WriteLine(toSplit);
-            foreach(var user in toSplit.Split("\n").ToList()) {
-                //var toAdd = new System.Text.StringBuilder();
-                var toAdd = "";
-                token t = new token();
                 t.genToken(pos);
-                var element = user.Split(";");
-                toAdd = element[3] + ";" + element[4] + ";" + t.getToken();
-                Console.WriteLine("toAdd:" + toAdd);
+                var toAdd = user.email + ";" + user.password + ";" + t.getToken(); //"ciao";
                 usersForLogin.Add(toAdd);
                 pos++;
-            }*/
-        }
-        public bool checkLogin(string log) {//log = token;email;password
-            return usersForLogin.Contains(log);
+                //Console.WriteLine(toAdd);
+            }
         }
         public void start() {
             listener.Prefixes.Add(url);
@@ -179,18 +188,8 @@ namespace serverWEB {
                 HttpListenerRequest req = ctx.Request;
                 HttpListenerResponse resp = ctx.Response;
 
-                //Console.WriteLine("reps: " + resp.ToString());
-                Console.WriteLine("req.AcceptTypes: " + req.AcceptTypes);
-                Console.WriteLine("req.ContentEncoding: " + req.ContentEncoding);
-                Console.WriteLine("req.ContentType: " + req.ContentType);
-                Console.WriteLine("req.Headers: " + req.Headers);
-
-                
-
-                //Console.WriteLine("req.InputStream: " + req.InputStream.ReadAsync());
-                Console.WriteLine("req.Url: " + req.Url);
-
                 if (req.Url.AbsolutePath != "/favicon.ico") {
+                    //GET request all'endpoint di login
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/")) {
                         byte[] data = Encoding.UTF8.GetBytes(loginPage);
                         resp.ContentType = "text/html";
@@ -201,35 +200,30 @@ namespace serverWEB {
                         resp.Close();
                     }
 
+                    //POST request, controlla il login e, se autorizzato, ritorna l'endpoint con l'area di voto
                     if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/")) {
-                        Console.WriteLine("Favorevole requested");
+                        //legge la richiesta di un client
                         Stream stream = req.InputStream;
                         StreamReader sr = new StreamReader(stream, Encoding.UTF8);
-                        string content = sr.ReadToEnd();
-                        Console.WriteLine(content);
-
-                        byte[] data = Encoding.UTF8.GetBytes("hewwo");
-                        resp.ContentType = "text/html";
+                        string content = sr.ReadToEnd().Trim();//.Replace("\n", "").Replace("\r", "").Trim();
+                        string endPattern = Regex.Escape(content);
+                        Console.WriteLine("richiesta del client:" + endPattern);
+                        //controllo del login#
+                        byte[] data;
+                        if (checkLogin(content)) {
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"code\": \"0\"}");
+                        } else {
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"code\": \"1\"}");
+                        }
+                        //risposta al client
+                        
+                        resp.ContentType = "application/json";
                         resp.ContentEncoding = Encoding.UTF8;
                         resp.ContentLength64 = data.LongLength;
 
                         await resp.OutputStream.WriteAsync(data, 0, data.Length);
                         resp.Close();
                     }
-
-                    /*Console.WriteLine("Request #: {0}", ++requestCount);
-                    Console.WriteLine(req.Url.ToString());
-                    Console.WriteLine(req.HttpMethod);
-                    Console.WriteLine(req.UserHostName);
-                    Console.WriteLine(req.UserAgent);
-                    Console.WriteLine();
-                    byte[] data = Encoding.UTF8.GetBytes(loginPage);
-                    resp.ContentType = "text/html";
-                    resp.ContentEncoding = Encoding.UTF8;
-                    resp.ContentLength64 = data.LongLength;
-
-                    await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                    */
                 }
             }
         }
@@ -240,7 +234,7 @@ namespace serverWEB {
             server s = new server();
             s.init();
             s.genLoginsCode();
-            //s.printUsersForLogin();
+            s.printUsersForLogin();
             Console.WriteLine("ascolto sulla porta 8000");
             s.start();
             s.listen();

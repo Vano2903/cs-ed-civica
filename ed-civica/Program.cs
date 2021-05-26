@@ -109,16 +109,6 @@ namespace serverWEB {
             foreach(var user in usersForLogin) {
                 byte[] logb = Encoding.UTF8.GetBytes(log.Trim());
                 byte[] userb = Encoding.UTF8.GetBytes(user.Trim());
-                //Console.Write("logb  ");
-                //for(int i = 0; i < logb.Length; i++) {
-                //    Console.Write(logb[i]);
-                //}
-                //Console.WriteLine();
-                //Console.Write("userb ");
-                //for (int i = 0; i < userb.Length; i++) {
-                //    Console.Write(userb[i]);
-                //}
-                //Console.WriteLine();
                 byte[] userbmin1 = new byte[userb.Length-1];
                 for(int i = 0; i < userb.Length-1; i++) {
                     userbmin1[i] = userb[i];
@@ -208,7 +198,7 @@ namespace serverWEB {
                         string content = sr.ReadToEnd().Trim();//.Replace("\n", "").Replace("\r", "").Trim();
                         string endPattern = Regex.Escape(content);
                         Console.WriteLine("richiesta del client:" + endPattern);
-                        //controllo del login#
+                        //controllo del login
                         byte[] data;
                         if (checkLogin(content)) {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"code\": \"0\"}");

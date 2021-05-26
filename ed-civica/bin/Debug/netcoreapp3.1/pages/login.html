@@ -178,7 +178,7 @@
 </head>
 
 <body>
-    <button id="login">></button>
+    <button onclick="checkLogin()" id="login">></button>
     <div>
         <h1>LOGIN</h1>
         <div class="logArea">
@@ -193,29 +193,26 @@
         <div id="sphere2"></div>
         <div id="sphere3"></div>
     </div>
-    <!-- 
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-
     <script>
-        $("#login").click(function () {
+        function checkLogin() {
             console.log("pressed")
-            $("button+div h1, button+div label").animate({
-                color: "#7a2322",
-            }, 1000, function () {
-            });
-        });
+            var http = new XMLHttpRequest();
+            var email = document.getElementById("email").value;
+            var psw = document.getElementById("password").value;
+            var token = document.getElementById("token").value;
+            var data = email + ";" + psw + ";" + token;
+            http.open('POST', "localhost:8000/", true);
+            http.setRequestHeader('Content-type', 'text/plain');
 
-        function declined() {
-            $("button+div h1, button+div label").animate({
-                color: "#7a2322",
-            })
+            http.onreadystatechange = function () {
+                if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+                    console.log(http.responseText);
+                }
+            }
+
+            http.send(data);
         }
-
-        function accepted() {
-
-        }
-    </script> -->
+    </script>
 
 </body>
 

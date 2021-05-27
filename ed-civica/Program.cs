@@ -83,7 +83,8 @@ namespace serverWEB {
 
     class server {
         private List<voter> voters;
-        public List<string> usersForLogin;
+        private List<string> usersForLogin;
+        private usersJson presidente;
         private List<usersJson> usersFromJson;
         private int pageViews = 0;
         private int favorevoli = 0;
@@ -98,13 +99,21 @@ namespace serverWEB {
         private HttpListener listener;
         private bool runServer = true;
         
-        //carica i senatori dal json
+        //carica i senatori e il presidente dal json
         private void loadUsers() {
+            //carica i senatori
             StreamReader sr = new StreamReader(@"config\senatore.json");
             string json = sr.ReadToEnd();
             usersFromJson = JsonConvert.DeserializeObject<List<usersJson>>(json);
             sr.Close();
+
+            //carica il presidente
+            sr = new StreamReader(@"config\presidente.json");
+            json = sr.ReadToEnd();
+            presidente = JsonConvert.DeserializeObject<usersJson>(json);
+            sr.Close();
         }
+        
         //c'é un problema, se si guardano i byte di user si nota come alla fine ci sia uno 0 di cui non ne capisco il motivo quindi ho solamente tolto quello 0
         private bool checkLogin(string log) {//log = token;email;password
             foreach(var user in usersForLogin) {
@@ -120,7 +129,16 @@ namespace serverWEB {
                 }
             }
             return false;
-            //return usersForLogin.Contains(log)
+        }
+        private bool checkLoginPresidente(string log) {
+            var toCheck = presidente.email + ";" + presidente.password + ";" + presidente.token;
+            byte[] logb = Encoding.UTF8.GetBytes(log.Trim());
+            byte[] userb = Encoding.UTF8.GetBytes(toCheck.Trim());
+            byte[] userbmin1 = new byte[userb.Length - 1];
+            for (int i = 0; i < userb.Length - 1; i++) {
+                userbmin1[i] = userb[i];
+            }
+            return logb.SequenceEqual(userbmin1);
         }
         //costruttore
         public server() {
@@ -139,6 +157,9 @@ namespace serverWEB {
                 usersForLogin.Add(toAdd);
                 pos++;
             }
+            token pres = new token();
+            pres.genToken(pos);
+            presidente.token = pres.getToken();
         }
         public void start() {
             listener.Prefixes.Add(url);
@@ -165,7 +186,7 @@ namespace serverWEB {
             sr.Close();
         }
         public void addVoter(string login) {
-            string result = list.FirstOrDefault(s => s.Contains(srch));
+            
         }
         public void listen() {
             try {
@@ -180,6 +201,9 @@ namespace serverWEB {
                 Console.WriteLine(u);
             }
         }
+        public string printPreidente() {
+            return presidente.email + ";" + presidente.password + ";" + presidente.token;
+        }
         public async Task HandleIncomingConnections() {
             
             while (runServer) {
@@ -188,6 +212,7 @@ namespace serverWEB {
                 HttpListenerResponse resp = ctx.Response;
 
                 if (req.Url.AbsolutePath != "/favicon.ico") {
+                    //GESTIONE LOGIN VOTANTI
                     //GET request all'endpoint di login
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/")) {
                         init();
@@ -226,6 +251,7 @@ namespace serverWEB {
                         resp.Close();
                     }
                     
+                    //GESTIONE LOGIN PRESIDENTE
                     //GET per l'endpoint del presidente, ritorna il login del presidente
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/presidente")) {
                         init();
@@ -238,6 +264,7 @@ namespace serverWEB {
                         resp.Close();
                     }
 
+                    //POST controlla se 
                     if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
                         //legge la richiesta di un client
                         Stream stream = req.InputStream;
@@ -247,7 +274,7 @@ namespace serverWEB {
                         Console.WriteLine("richiesta del client:" + endPattern);
                         //controllo del login
                         byte[] data;
-                        if (checkLogin(content)) {
+                        if (checkLoginPresidente(content)) {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
                         } else {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
@@ -271,7 +298,8 @@ namespace serverWEB {
             server s = new server();
             s.init();
             s.genLoginsCode();
-            s.printUsersForLogin();
+            //s.printUsersForLogin();
+            Console.WriteLine("login per presidente: "+ s.printPreidente());
             Console.WriteLine("ascolto sulla porta 8000");
             s.start();
             s.listen();

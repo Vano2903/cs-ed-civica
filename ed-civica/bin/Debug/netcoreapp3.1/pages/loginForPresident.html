@@ -174,7 +174,8 @@
             background: linear-gradient(16deg, rgb(165, 56, 80) 15%, rgb(204, 101, 87) 74%);
             transform: scale(1.2);
         }
-        top{
+
+        top {
             z-index: 5;
             color: #7a22229a;
         }
@@ -184,7 +185,7 @@
 <body>
     <button onclick="checkLogin()" id="login">></button>
     <div>
-        <h1>LOGIN PER IL PRESIDENTE</h1>
+        <h1>LOGIN</h1>
         <div class="logArea">
             <label for="email">Indirizzo email</label>
             <input type="email" id="email" placeholder="mail@gmail.com">
@@ -199,7 +200,7 @@
         <div id="sphere3"></div>
     </div>
     <script>
-        function getLoginData(){
+        function getLoginData() {
             var email = document.getElementById("email").value;
             var psw = document.getElementById("password").value;
             var token = document.getElementById("token").value;
@@ -215,24 +216,24 @@
             await fetch('/presidente', {
                 method: "POST",
                 body: data
-            }).then(function(response){
-                return response.text().then(function(text){
+            }).then(function (response) {
+                return response.text().then(function (text) {
                     console.log(text)
                     responseJson = JSON.parse(text)
                 })
-                
+
             })
             checkResponse(responseJson);
         }
 
-        function checkResponse(data){
+        function checkResponse(data) {
             console.log("data in checkResponse: " + data)
             errore = document.getElementById("errore");
-            if(data.accepted == true){
+            if (data.accepted == true) {
                 console.log(data.message);
                 errore.innerHTML = "";
                 errore.style.display = "none";
-            }else{
+            } else {
                 console.log(data.message);
                 errore.innerHTML = data.message;
                 errore.style.display = "block";

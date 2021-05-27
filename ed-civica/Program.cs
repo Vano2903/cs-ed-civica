@@ -173,6 +173,7 @@ namespace serverWEB {
             }
         }
         public async Task HandleIncomingConnections() {
+            
             while (runServer) {
                 HttpListenerContext ctx = await listener.GetContextAsync();
                 HttpListenerRequest req = ctx.Request;
@@ -181,6 +182,7 @@ namespace serverWEB {
                 if (req.Url.AbsolutePath != "/favicon.ico") {
                     //GET request all'endpoint di login
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/")) {
+                        init();
                         byte[] data = Encoding.UTF8.GetBytes(loginPage);
                         resp.ContentType = "text/html";
                         resp.ContentEncoding = Encoding.UTF8;
@@ -201,12 +203,12 @@ namespace serverWEB {
                         //controllo del login
                         byte[] data;
                         if (checkLogin(content)) {
-                            data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"code\": \"0\"}");
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
                         } else {
-                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"code\": \"1\"}");
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
                         }
                         //risposta al client
-                        
+
                         resp.ContentType = "application/json";
                         resp.ContentEncoding = Encoding.UTF8;
                         resp.ContentLength64 = data.LongLength;

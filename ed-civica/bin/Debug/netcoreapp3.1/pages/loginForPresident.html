@@ -184,7 +184,7 @@
 <body>
     <button onclick="checkLogin()" id="login">></button>
     <div>
-        <h1>LOGIN</h1>
+        <h1>LOGIN PER IL PRESIDENTE</h1>
         <div class="logArea">
             <label for="email">Indirizzo email</label>
             <input type="email" id="email" placeholder="mail@gmail.com">
@@ -212,7 +212,7 @@
             console.log(code);
             var data = code == undefined ? getLoginData() : code
             var responseJson;
-            await fetch('/', {
+            await fetch('/presidente', {
                 method: "POST",
                 body: data
             }).then(function(response){

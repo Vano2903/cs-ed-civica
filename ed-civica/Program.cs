@@ -88,7 +88,9 @@ namespace serverWEB {
         private int pageViews = 0;
         private int favorevoli = 0;
         private int requestCount = 0;
+        //stringhe per le pagine
         private string loginPage;
+        private string loginPageForPresident;
         private string votePage;
         private string monitorPage;
         //for webserver
@@ -103,7 +105,6 @@ namespace serverWEB {
             usersFromJson = JsonConvert.DeserializeObject<List<usersJson>>(json);
             sr.Close();
         }
-        //FUNZIONA ORA ;-;-;-; NON LO TOCCARE PER L'AMORE DIDDIO XD
         //c'é un problema, se si guardano i byte di user si nota come alla fine ci sia uno 0 di cui non ne capisco il motivo quindi ho solamente tolto quello 0
         private bool checkLogin(string log) {//log = token;email;password
             foreach(var user in usersForLogin) {
@@ -129,7 +130,6 @@ namespace serverWEB {
             usersFromJson = new List<usersJson>();
         }
         public void genLoginsCode() {
-            //versione con json
             loadUsers();
             int pos = 1;
             foreach (var user in usersFromJson) {
@@ -138,7 +138,6 @@ namespace serverWEB {
                 var toAdd = user.email + ";" + user.password + ";" + t.getToken(); //"ciao";
                 usersForLogin.Add(toAdd);
                 pos++;
-                //Console.WriteLine(toAdd);
             }
         }
         public void start() {
@@ -155,9 +154,18 @@ namespace serverWEB {
             listener.Close();
         }
         public void init() {
+            //carica la pagina di login per i votanti
             StreamReader sr = new StreamReader(@"pages\login.html");
             loginPage = sr.ReadToEnd();
             sr.Close();
+
+            //carica la pagina di login per il presidente
+            sr = new StreamReader(@"pages\loginForPresident.html");
+            loginPageForPresident = sr.ReadToEnd();
+            sr.Close();
+        }
+        public void addVoter(string login) {
+            string result = list.FirstOrDefault(s => s.Contains(srch));
         }
         public void listen() {
             try {
@@ -173,6 +181,7 @@ namespace serverWEB {
             }
         }
         public async Task HandleIncomingConnections() {
+            
             while (runServer) {
                 HttpListenerContext ctx = await listener.GetContextAsync();
                 HttpListenerRequest req = ctx.Request;
@@ -181,6 +190,7 @@ namespace serverWEB {
                 if (req.Url.AbsolutePath != "/favicon.ico") {
                     //GET request all'endpoint di login
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/")) {
+                        init();
                         byte[] data = Encoding.UTF8.GetBytes(loginPage);
                         resp.ContentType = "text/html";
                         resp.ContentEncoding = Encoding.UTF8;
@@ -201,12 +211,49 @@ namespace serverWEB {
                         //controllo del login
                         byte[] data;
                         if (checkLogin(content)) {
-                            data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"code\": \"0\"}");
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
+                            
                         } else {
-                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"code\": \"1\"}");
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
                         }
                         //risposta al client
-                        
+
+                        resp.ContentType = "application/json";
+                        resp.ContentEncoding = Encoding.UTF8;
+                        resp.ContentLength64 = data.LongLength;
+
+                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                        resp.Close();
+                    }
+                    
+                    //GET per l'endpoint del presidente, ritorna il login del presidente
+                    if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/presidente")) {
+                        init();
+                        byte[] data = Encoding.UTF8.GetBytes(loginPageForPresident);
+                        resp.ContentType = "text/html";
+                        resp.ContentEncoding = Encoding.UTF8;
+                        resp.ContentLength64 = data.LongLength;
+
+                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                        resp.Close();
+                    }
+
+                    if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
+                        //legge la richiesta di un client
+                        Stream stream = req.InputStream;
+                        StreamReader sr = new StreamReader(stream, Encoding.UTF8);
+                        string content = sr.ReadToEnd().Trim();//.Replace("\n", "").Replace("\r", "").Trim();
+                        string endPattern = Regex.Escape(content);
+                        Console.WriteLine("richiesta del client:" + endPattern);
+                        //controllo del login
+                        byte[] data;
+                        if (checkLogin(content)) {
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
+                        } else {
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
+                        }
+                        //risposta al client
+
                         resp.ContentType = "application/json";
                         resp.ContentEncoding = Encoding.UTF8;
                         resp.ContentLength64 = data.LongLength;

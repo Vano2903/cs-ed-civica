@@ -174,7 +174,8 @@
             background: linear-gradient(16deg, rgb(165, 56, 80) 15%, rgb(204, 101, 87) 74%);
             transform: scale(1.2);
         }
-        top{
+
+        top {
             z-index: 5;
             color: #7a22229a;
         }
@@ -199,7 +200,7 @@
         <div id="sphere3"></div>
     </div>
     <script>
-        function getLoginData(){
+        function getLoginData() {
             var email = document.getElementById("email").value;
             var psw = document.getElementById("password").value;
             var token = document.getElementById("token").value;
@@ -209,30 +210,27 @@
         async function checkLogin(code) {
             console.log("pressed")
             var http = new XMLHttpRequest();
-            console.log(code);
             var data = code == undefined ? getLoginData() : code
             var responseJson;
             await fetch('/', {
                 method: "POST",
                 body: data
-            }).then(function(response){
-                return response.text().then(function(text){
-                    console.log(text)
+            }).then(function (response) {
+                return response.text().then(function (text) {
                     responseJson = JSON.parse(text)
                 })
-                
             })
             checkResponse(responseJson);
         }
 
-        function checkResponse(data){
-            console.log("data in checkResponse: " + data)
+        function checkResponse(data) {
+            console.log(data)
             errore = document.getElementById("errore");
-            if(data.accepted == true){
+            if (data.accepted == true) {
                 console.log(data.message);
                 errore.innerHTML = "";
                 errore.style.display = "none";
-            }else{
+            } else {
                 console.log(data.message);
                 errore.innerHTML = data.message;
                 errore.style.display = "block";

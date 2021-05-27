@@ -83,21 +83,23 @@ namespace serverWEB {
 
     class server {
         private List<voter> voters;
-        private List<string> usersForLogin;
+        public List<string> usersForLogin;
         private usersJson presidente;
         private List<usersJson> usersFromJson;
-        private int pageViews = 0;
-        private int favorevoli = 0;
-        private int requestCount = 0;
+        //azioni del presidente
+        private bool runServer = true; //non penso che, per il modo in cui é costrituo, abbia senso dare questo potere al presidente
+        private bool openLogin = true;
+        private bool openVote = false;
         //stringhe per le pagine
         private string loginPage;
         private string loginPageForPresident;
+        private string presidentArea;
+        private string notAllowed;
         private string votePage;
         private string monitorPage;
         //for webserver
         private string url = "http://localhost:8000/";
         private HttpListener listener;
-        private bool runServer = true;
         
         //carica i senatori e il presidente dal json
         private void loadUsers() {
@@ -113,7 +115,6 @@ namespace serverWEB {
             presidente = JsonConvert.DeserializeObject<usersJson>(json);
             sr.Close();
         }
-        
         //c'é un problema, se si guardano i byte di user si nota come alla fine ci sia uno 0 di cui non ne capisco il motivo quindi ho solamente tolto quello 0
         private bool checkLogin(string log) {//log = token;email;password
             foreach(var user in usersForLogin) {
@@ -184,6 +185,16 @@ namespace serverWEB {
             sr = new StreamReader(@"pages\loginForPresident.html");
             loginPageForPresident = sr.ReadToEnd();
             sr.Close();
+
+            //carica la pagina di errore
+            sr = new StreamReader(@"pages\notAllowed.html");
+            notAllowed = sr.ReadToEnd();
+            sr.Close();
+
+            //carica la pagina di comando del presidente
+            sr = new StreamReader(@"pages\presidentArea.html");
+            presidentArea = sr.ReadToEnd();
+            sr.Close();
         }
         public void addVoter(string login) {
             
@@ -205,7 +216,6 @@ namespace serverWEB {
             return presidente.email + ";" + presidente.password + ";" + presidente.token;
         }
         public async Task HandleIncomingConnections() {
-            
             while (runServer) {
                 HttpListenerContext ctx = await listener.GetContextAsync();
                 HttpListenerRequest req = ctx.Request;
@@ -215,16 +225,28 @@ namespace serverWEB {
                     //GESTIONE LOGIN VOTANTI
                     //GET request all'endpoint di login
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/")) {
-                        init();
-                        byte[] data = Encoding.UTF8.GetBytes(loginPage);
-                        resp.ContentType = "text/html";
-                        resp.ContentEncoding = Encoding.UTF8;
-                        resp.ContentLength64 = data.LongLength;
+                        if (openLogin) {
+                            init();
+                            byte[] data = Encoding.UTF8.GetBytes(loginPage);
+                            resp.ContentType = "text/html";
+                            resp.ContentEncoding = Encoding.UTF8;
+                            resp.ContentLength64 = data.LongLength;
 
-                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                        resp.Close();
+                            await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                            resp.Close();
+                        } else {
+                            resp.StatusCode = 405; //method not allowed
+                            byte[] data = Encoding.UTF8.GetBytes(notAllowed);
+
+                            //risposta al client
+                            resp.ContentType = "text/html";
+                            resp.ContentEncoding = Encoding.UTF8;
+                            resp.ContentLength64 = data.LongLength;
+
+                            await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                            resp.Close();
+                        }
                     }
-
                     //POST request, controlla il login e, se autorizzato, ritorna l'endpoint con l'area di voto
                     if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/")) {
                         //legge la richiesta di un client
@@ -237,7 +259,7 @@ namespace serverWEB {
                         byte[] data;
                         if (checkLogin(content)) {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
-                            
+
                         } else {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
                         }
@@ -250,7 +272,12 @@ namespace serverWEB {
                         await resp.OutputStream.WriteAsync(data, 0, data.Length);
                         resp.Close();
                     }
-                    
+
+                    //GESTIONE DELLE VOTAZIONI
+                    if (openVote) {
+
+                    }
+
                     //GESTIONE LOGIN PRESIDENTE
                     //GET per l'endpoint del presidente, ritorna il login del presidente
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/presidente")) {
@@ -264,7 +291,7 @@ namespace serverWEB {
                         resp.Close();
                     }
 
-                    //POST controlla se 
+                    //POST controlla se il login del presidente é corretto
                     if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
                         //legge la richiesta di un client
                         Stream stream = req.InputStream;
@@ -288,6 +315,16 @@ namespace serverWEB {
                         await resp.OutputStream.WriteAsync(data, 0, data.Length);
                         resp.Close();
                     }
+
+                    if((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidenteArea")) {
+                        Stream stream = req.InputStream;
+                        StreamReader sr = new StreamReader(stream, Encoding.UTF8);
+                        string content = sr.ReadToEnd().Trim();//.Replace("\n", "").Replace("\r", "").Trim();
+                        string endPattern = Regex.Escape(content);
+                        Console.WriteLine("richiesta del client:" + endPattern);
+                        //controllo del token
+
+                    }
                 }
             }
         }
@@ -300,10 +337,10 @@ namespace serverWEB {
             s.genLoginsCode();
             //s.printUsersForLogin();
             Console.WriteLine("login per presidente: "+ s.printPreidente());
+            Console.WriteLine("login di un votante generico: " + s.usersForLogin[0]);
             Console.WriteLine("ascolto sulla porta 8000");
             s.start();
             s.listen();
         }
-
     }
 }

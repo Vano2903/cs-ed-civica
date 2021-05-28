@@ -141,6 +141,7 @@ namespace serverWEB {
             }
             return logb.SequenceEqual(userbmin1);
         }
+
         //costruttore
         public server() {
             listener = new HttpListener();
@@ -319,11 +320,23 @@ namespace serverWEB {
                     if((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidenteArea")) {
                         Stream stream = req.InputStream;
                         StreamReader sr = new StreamReader(stream, Encoding.UTF8);
-                        string content = sr.ReadToEnd().Trim();//.Replace("\n", "").Replace("\r", "").Trim();
-                        string endPattern = Regex.Escape(content);
-                        Console.WriteLine("richiesta del client:" + endPattern);
-                        //controllo del token
+                        string content = sr.ReadToEnd().Trim();
+                        Console.WriteLine("richiesta del client (presidente):" + content);
+                        //controllo del login
+                        byte[] data;
+                        if (checkLoginPresidente(content)) {
+                            data = Encoding.UTF8.GetBytes(presidentArea);
+                            resp.ContentType = "text/html";
+                        } else {
+                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
+                            resp.ContentType = "application/json";
+                        }
+                        //risposta al client
+                        resp.ContentEncoding = Encoding.UTF8;
+                        resp.ContentLength64 = data.LongLength;
 
+                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                        resp.Close();
                     }
                 }
             }

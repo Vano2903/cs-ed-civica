@@ -84,7 +84,7 @@ namespace serverWEB {
 
     class server {
         private List<voter> voters;
-        public List<string> usersForLogin;
+        //public List<string> usersForLogin;
         private usersJson presidente;
         private List<usersJson> usersFromJson;
         //azioni del presidente
@@ -116,19 +116,9 @@ namespace serverWEB {
             presidente = JsonConvert.DeserializeObject<usersJson>(json);
             sr.Close();
         }
-        //c'é un problema, se si guardano i byte di user si nota come alla fine ci sia uno 0 di cui non ne capisco il motivo quindi ho solamente tolto quello 0
-        private bool checkLogin(string log) {//log = token;email;password
-            foreach(var user in usersForLogin) {
-                byte[] logb = Encoding.UTF8.GetBytes(log.Trim());
-                byte[] userb = Encoding.UTF8.GetBytes(user.Trim());
-                byte[] userbmin1 = new byte[userb.Length-1];
-                for(int i = 0; i < userb.Length-1; i++) {
-                    userbmin1[i] = userb[i];
-                }
-
-                if (logb.SequenceEqual(userbmin1)) {
-                    return true;
-                }
+        private bool checkLogin(string log) {//log = email;password;token
+            foreach (var user in usersFromJson) {
+                return true;
             }
             return false;
         }
@@ -147,29 +137,27 @@ namespace serverWEB {
         public server() {
             listener = new HttpListener();
             voters = new List<voter>();
-            usersForLogin = new List<string>();
+            //usersForLogin = new List<string>();
             usersFromJson = new List<usersJson>();
         }
         public void genLoginsCode() {
             loadUsers();
-            int cont = 0;
-            int pos = 1;
-            foreach (var user in usersFromJson) {
+            int i = 0;
+            for (; i < usersFromJson.Count; i++) {
                 token t = new token();
-                t.genToken(pos);
-                var toAdd = user.email + ";" + user.password + ";" + t.getToken(); //"ciao";
-                //potrebbe essere gestito meglio peró diciamo che non ho piú cosí tanto tempo da modificare troppo la logica del programma, scusi
+                t.genToken(i + 1);
                 usersJson a;
-                a = user;
+                a.id = usersFromJson[i].id;
+                a.name = usersFromJson[i].name;
+                a.lastName = usersFromJson[i].lastName;
+                a.email = usersFromJson[i].email;
+                a.password = usersFromJson[i].password;
                 a.token = t.getToken();
-                a.position = pos;
-                usersFromJson[cont] = a;
-                usersForLogin.Add(toAdd);
-                pos++;
-                cont++;
+                a.position = i + 1;
+                usersFromJson[i] = a;
             }
             token pres = new token();
-            pres.genToken(pos);
+            pres.genToken(i + 1);
             presidente.token = pres.getToken();
         }
         public void start() {
@@ -224,10 +212,18 @@ namespace serverWEB {
                 Console.WriteLine(e);
             }
         }
-        public void printUsersForLogin() {
-            foreach (var u in usersForLogin) {
-                Console.WriteLine(u);
+        public string printUsers(int index) {
+            if (index <= 0 || index > usersFromJson.Count) {
+                return usersFromJson[index].email + ";" + usersFromJson[index].password + ";" + usersFromJson[index].token;
             }
+            return "index out of range";
+        }
+        public string printUsers() {
+            string toReturn = "";
+            foreach (var u in usersFromJson) {
+                toReturn += u.email + ";" + u.password + ";" + u.token + "\n";
+            }
+            return toReturn;
         }
         public string printPreidente() {
             return presidente.email + ";" + presidente.password + ";" + presidente.token;
@@ -340,9 +336,8 @@ namespace serverWEB {
             server s = new server();
             s.init();
             s.genLoginsCode();
-            //s.printUsersForLogin();
             Console.WriteLine("login per presidente: "+ s.printPreidente());
-            Console.WriteLine("login di un votante generico: " + s.usersForLogin[0]);
+            Console.WriteLine("login di un votante generico: " + s.printUsers(0));
             Console.WriteLine("ascolto sulla porta 8000");
             s.start();
             s.listen();

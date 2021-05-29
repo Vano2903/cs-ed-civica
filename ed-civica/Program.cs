@@ -10,17 +10,16 @@ using System.Text.RegularExpressions;
 
 namespace serverWEB {
     struct usersJson {
-        public int id;
+        public int    id;
         public string name;
         public string lastName;
         public string email;
         public string password;
         public string token;
-        public int position;
+        public int    position;
     }
     class token {
         private string tok; //tik
-
         public token() {
             tok = "";
         }
@@ -31,7 +30,6 @@ namespace serverWEB {
             for (int i = 0; i < stringChars.Length - 1; i++) {
                 stringChars[i] = chars[random.Next(chars.Length)];
             }
-            //stringChars[5] = '\0';
             return new String(stringChars);
         }
         private string genNumPart(int pos) {
@@ -116,9 +114,22 @@ namespace serverWEB {
             presidente = JsonConvert.DeserializeObject<usersJson>(json);
             sr.Close();
         }
+        //il problema con i byte c'é ancora ma almeno ora utilizzo solo usersFromJson
         private bool checkLogin(string log) {//log = email;password;token
             foreach (var user in usersFromJson) {
-                return true;
+                string check = "";
+                
+                check = user.email + ";" + user.password + ";" + user.token;
+                byte[] logb = Encoding.UTF8.GetBytes(log.Trim());
+                byte[] checkb = Encoding.UTF8.GetBytes(check.Trim());
+                byte[] supp = new byte[checkb.Length - 1];
+
+                for (int i = 0; i < checkb.Length - 1; i++) {
+                    supp[i] = checkb[i];
+                }
+                if (logb.SequenceEqual(supp)) {
+                    return true;
+                }
             }
             return false;
         }
@@ -213,7 +224,7 @@ namespace serverWEB {
             }
         }
         public string printUsers(int index) {
-            if (index <= 0 || index > usersFromJson.Count) {
+            if (index > 0 || index < usersFromJson.Count) {
                 return usersFromJson[index].email + ";" + usersFromJson[index].password + ";" + usersFromJson[index].token;
             }
             return "index out of range";
@@ -272,7 +283,7 @@ namespace serverWEB {
                         byte[] data;
                         if (checkLogin(content)) {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
-
+                            addVoter(content);
                         } else {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
                         }
@@ -337,7 +348,7 @@ namespace serverWEB {
             s.init();
             s.genLoginsCode();
             Console.WriteLine("login per presidente: "+ s.printPreidente());
-            Console.WriteLine("login di un votante generico: " + s.printUsers(0));
+            Console.WriteLine("login di un votante generico: " + s.printUsers(2));
             Console.WriteLine("ascolto sulla porta 8000");
             s.start();
             s.listen();

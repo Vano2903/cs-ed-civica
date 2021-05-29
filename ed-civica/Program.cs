@@ -117,7 +117,6 @@ namespace serverWEB {
         private bool checkLogin(string log) {//log = email;password;token
             foreach (var user in usersFromJson) {
                 string check = "";
-                
                 check = user.email + ";" + user.password + ";" + user.token;
                 byte[] logb = Encoding.UTF8.GetBytes(log.Trim());
                 byte[] checkb = Encoding.UTF8.GetBytes(check.Trim());
@@ -231,10 +230,14 @@ namespace serverWEB {
             return presidente.email + ";" + presidente.password + ";" + presidente.token;
         }
         public async Task HandleIncomingConnections() {
+            Console.WriteLine("aaaa");
             while (runServer) {
                 HttpListenerContext ctx = await listener.GetContextAsync();
                 HttpListenerRequest req = ctx.Request;
                 HttpListenerResponse resp = ctx.Response;
+
+                Console.WriteLine(req.Url.AbsolutePath);
+                Console.WriteLine(req.HttpMethod);
 
                 if (req.Url.AbsolutePath != "/favicon.ico") {
                     //GESTIONE LOGIN VOTANTI
@@ -307,9 +310,9 @@ namespace serverWEB {
                         await resp.OutputStream.WriteAsync(data, 0, data.Length);
                         resp.Close();
                     }
-
                     //POST controlla se il login del presidente é corretto
                     if((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
+                        Console.WriteLine("heuu");
                         Stream stream = req.InputStream;
                         StreamReader sr = new StreamReader(stream, Encoding.UTF8);
                         string content = sr.ReadToEnd().Trim();
@@ -317,6 +320,7 @@ namespace serverWEB {
                         //controllo del login
                         byte[] data;
                         if (checkLoginPresidente(content)) {
+                            Console.WriteLine("dio bono");
                             data = Encoding.UTF8.GetBytes(presidentArea);
                             resp.ContentType = "text/html";
                         } else {

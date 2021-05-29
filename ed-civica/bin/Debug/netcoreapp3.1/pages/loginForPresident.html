@@ -7,10 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Area Login</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
+        @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap");
 
         body {
-            font-family: 'Open Sans', sans-serif;
+            font-family: "Open Sans", sans-serif;
             background-color: white;
             display: flex;
             flex-direction: column;
@@ -212,11 +212,11 @@
             console.log(code);
             var data = code == undefined ? getLoginData() : code
 
-            const res = await fetch('/presidenteArea', {
+            const res = await fetch('/presidente', {
                 method: "POST",
                 body: data
             });
-            const contentType = res.headers.get('Content-Type');
+            const contentType = res.headers.get("Content-Type");
             const resp = await res.text();
 
             console.log(contentType);

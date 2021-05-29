@@ -83,20 +83,21 @@
     <br>
     <!--
         !!Considerazioni sulla scelta
-        *allora secondo me non ha tanto senso avere una checkbox per gestire queste cose (avvio del login e dell'area di voto) perché 
+        *allora secondo me non ha tanto senso avere una checkbox per gestire queste cose (avvio del login e dell"area di voto) perché 
         *basterebbe un bottone e basta visto che praticamente é una cosa da 1 volta e basta peró in questo caso é per far vedere che il 
         *presidente ha potere di avviare/disattivare ogni area che vuole
     -->
 
     <div class="col-8 alert alert-primary center">
-        <h2>Area di comando</h2><br><br>
-        <label for="login">Attiva l'area di login per i votanti</label><br>
+        <h2>Benvenuto nell'area di controllo</h2><br><br>
+        <label for="login">Attiva l"area di login per i votanti</label><br>
         <label class="switch">
             <input type="checkbox" onclick="loginHandler()" id="loginArea">
             <span class="slider round"></span>
         </label>
-        <br><hr>
-        <label for="login">Attiva l'area di voto</label><br>
+        <br>
+        <hr>
+        <label for="login">Attiva l"area di voto</label><br>
         <textarea type="text" id="broadcast" class="form-control" row="5"
             placeholder="Quello che scrivi qui verrá visualizzato da tutti i votanti"></textarea>
         <br>
@@ -119,9 +120,8 @@
     <script>
         async function loginHandler() {
             console.log("pressed")
-            var http = new XMLHttpRequest();
             console.log(code);
-            var data = document.getElementById('on_or_off_checkbox').checked
+            var data = document.getElementById("on_or_off_checkbox").checked
             var responseJson;
             await fetch('/presidente', {
                 method: "POST",

@@ -82,7 +82,6 @@ namespace serverWEB {
 
     class server {
         private List<voter> voters;
-        //public List<string> usersForLogin;
         private usersJson presidente;
         private List<usersJson> usersFromJson;
         //azioni del presidente
@@ -128,6 +127,8 @@ namespace serverWEB {
                     supp[i] = checkb[i];
                 }
                 if (logb.SequenceEqual(supp)) {
+                    voter v = new voter(user.id, user.token, user.name, user.lastName, user.email, user.password, user.position);
+                    voters.Add(v);
                     return true;
                 }
             }
@@ -205,16 +206,6 @@ namespace serverWEB {
             presidentArea = sr.ReadToEnd();
             sr.Close();
         }
-        public void addVoter(string login) {
-            var i = 0;
-            foreach(var user in usersFromJson) {
-                var element = login.Split(";");
-                if (element[0] == user.email && element[1] == user.password && element[2] == user.token) {
-                    voter v = new voter(user.id, user.token, user.name, user.lastName, user.email, user.password, user.position) ;
-                }
-                i++;
-            }
-        }
         public void listen() {
             try {
                 Task listenTask = HandleIncomingConnections();
@@ -283,12 +274,14 @@ namespace serverWEB {
                         byte[] data;
                         if (checkLogin(content)) {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
-                            addVoter(content);
+                            Console.WriteLine("dovrebbe stampare qualcosa ora ;-; ");
+                            foreach(var a in voters) {
+                                Console.WriteLine(a.loginString());
+                            }
                         } else {
                             data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
                         }
                         //risposta al client
-
                         resp.ContentType = "application/json";
                         resp.ContentEncoding = Encoding.UTF8;
                         resp.ContentLength64 = data.LongLength;
@@ -348,6 +341,8 @@ namespace serverWEB {
             s.init();
             s.genLoginsCode();
             Console.WriteLine("login per presidente: "+ s.printPreidente());
+            Console.WriteLine("login di un votante generico: " + s.printUsers(0));
+            Console.WriteLine("login di un votante generico: " + s.printUsers(1));
             Console.WriteLine("login di un votante generico: " + s.printUsers(2));
             Console.WriteLine("ascolto sulla porta 8000");
             s.start();

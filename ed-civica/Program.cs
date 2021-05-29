@@ -16,6 +16,7 @@ namespace serverWEB {
         public string email;
         public string password;
         public string token;
+        public int position;
     }
     class token {
         private string tok; //tik
@@ -151,13 +152,21 @@ namespace serverWEB {
         }
         public void genLoginsCode() {
             loadUsers();
+            int cont = 0;
             int pos = 1;
             foreach (var user in usersFromJson) {
                 token t = new token();
                 t.genToken(pos);
                 var toAdd = user.email + ";" + user.password + ";" + t.getToken(); //"ciao";
+                //potrebbe essere gestito meglio peró diciamo che non ho piú cosí tanto tempo da modificare troppo la logica del programma, scusi
+                usersJson a;
+                a = user;
+                a.token = t.getToken();
+                a.position = pos;
+                usersFromJson[cont] = a;
                 usersForLogin.Add(toAdd);
                 pos++;
+                cont++;
             }
             token pres = new token();
             pres.genToken(pos);
@@ -198,7 +207,14 @@ namespace serverWEB {
             sr.Close();
         }
         public void addVoter(string login) {
-            
+            var i = 0;
+            foreach(var user in usersFromJson) {
+                var element = login.Split(";");
+                if (element[0] == user.email && element[1] == user.password && element[2] == user.token) {
+                    voter v = new voter(user.id, user.token, user.name, user.lastName, user.email, user.password, user.position) ;
+                }
+                i++;
+            }
         }
         public void listen() {
             try {
@@ -293,31 +309,7 @@ namespace serverWEB {
                     }
 
                     //POST controlla se il login del presidente é corretto
-                    if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
-                        //legge la richiesta di un client
-                        Stream stream = req.InputStream;
-                        StreamReader sr = new StreamReader(stream, Encoding.UTF8);
-                        string content = sr.ReadToEnd().Trim();//.Replace("\n", "").Replace("\r", "").Trim();
-                        string endPattern = Regex.Escape(content);
-                        Console.WriteLine("richiesta del client:" + endPattern);
-                        //controllo del login
-                        byte[] data;
-                        if (checkLoginPresidente(content)) {
-                            data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
-                        } else {
-                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
-                        }
-                        //risposta al client
-
-                        resp.ContentType = "application/json";
-                        resp.ContentEncoding = Encoding.UTF8;
-                        resp.ContentLength64 = data.LongLength;
-
-                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                        resp.Close();
-                    }
-
-                    if((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidenteArea")) {
+                    if((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
                         Stream stream = req.InputStream;
                         StreamReader sr = new StreamReader(stream, Encoding.UTF8);
                         string content = sr.ReadToEnd().Trim();

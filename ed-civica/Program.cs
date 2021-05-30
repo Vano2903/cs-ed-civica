@@ -59,7 +59,7 @@ namespace serverWEB {
         private string lastName;
         private string email;
         private string password; //problema si sicurezza (possibile risolvere con funzione hash)
-        private bool voted;
+        private bool voted; 
         private int vote; //0 nullo, 1 conferma, 2 non conferma
         private int position;
 
@@ -77,6 +77,17 @@ namespace serverWEB {
 
         public string loginString() {
             return email + ";" + password + ";" + token;
+        }
+        public bool canVote() {
+            return !voted;
+        }
+
+        public void setVote(bool vote) {
+            if (vote) {
+                this.vote = 1;
+                return;
+            }
+            this.vote = 2;
         }
     }
 
@@ -332,7 +343,10 @@ namespace serverWEB {
 
                     if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/vote")) {
                         if (openVote) {
-
+                            Stream stream = req.InputStream;
+                            StreamReader sr = new StreamReader(stream, Encoding.UTF8);
+                            string content = sr.ReadToEnd().Trim();
+                            Console.WriteLine("voto del client:" + content);
                         }
                     }
                     //GESTIONE LOGIN PRESIDENTE

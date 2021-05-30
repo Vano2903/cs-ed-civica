@@ -74,20 +74,23 @@ namespace serverWEB {
             vote = 0;
             position = Position;
         }
-
         public string loginString() {
             return email + ";" + password + ";" + token;
         }
-        public bool canVote() {
-            return !voted;
-        }
-
-        public void setVote(bool vote) {
-            if (vote) {
-                this.vote = 1;
-                return;
+        public bool setVote(string vote) {
+            if (!voted) {
+                voted = true;
+                if (vote == "true") {
+                    this.vote = 1;
+                    return true;
+                }
+                this.vote = 2;
+                return true;
             }
-            this.vote = 2;
+            return false;
+        }
+        public string getToken() {
+            return token;
         }
     }
 
@@ -96,7 +99,7 @@ namespace serverWEB {
         private usersJson presidente;
         private List<usersJson> usersFromJson;
         //azioni del presidente
-        private bool runServer = true; //non penso che, per il modo in cui é costrituo, abbia senso dare questo potere al presidente
+        private bool runServer = true; //non penso che, per il modo in cui é costruito, abbia senso dare questo potere al presidente
         private bool openLogin = false;
         private bool openVote = false;
         //stringhe per le pagine
@@ -164,6 +167,35 @@ namespace serverWEB {
                 supp[i] = actualb[i];
             }
             return tokb.SequenceEqual(supp) ;
+        }
+        private int validVoterToken(string tok) {
+            int index = 0;
+            foreach (var user in voters) {
+                byte[] tokb = Encoding.UTF8.GetBytes(tok.Trim());
+                byte[] tokenb = Encoding.UTF8.GetBytes(user.getToken());
+                byte[] supp = new byte[tokenb.Length - 1];
+                /*
+                Console.WriteLine("tok: " + tok);
+                Console.WriteLine("user.getToken(): " + user.getToken());
+                Console.Write("tokb: ");
+                for(int i = 0; i < tokb.Length - 1; i++) {
+                    Console.Write(tokb[i]);
+                }
+                Console.WriteLine();
+                Console.Write("tokenb: ");
+                for (int i = 0; i < tokenb.Length - 1; i++) {
+                    Console.Write(tokenb[i]);
+                }
+                Console.WriteLine();
+                */
+                for (int i = 0; i < tokenb.Length - 1; i++) {
+                    supp[i] = tokenb[i];
+                }
+                if (tokb.SequenceEqual(supp)) {
+                    return index;
+                }
+            }
+            return -1;
         }
         //costruttore
         public server() {
@@ -323,6 +355,7 @@ namespace serverWEB {
 
                     //GESTIONE DELLE VOTAZIONI
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/vote")) {
+                        init();
                         byte[] data;
                         if (openVote) {
                             broadcast = "MESSAGGIOOOO :D";
@@ -347,6 +380,26 @@ namespace serverWEB {
                             StreamReader sr = new StreamReader(stream, Encoding.UTF8);
                             string content = sr.ReadToEnd().Trim();
                             Console.WriteLine("voto del client:" + content);
+                            var elements = content.Split(";");
+                            var index = validVoterToken(elements[1]);
+                            bool accepted;
+                            if (index >= 0) {
+                                accepted = voters[index].setVote(elements[0]);
+                                byte[] data;
+                                if (accepted) {
+                                    data = Encoding.UTF8.GetBytes("{\"message\": \"Voto accettato correttamente\", \"alreadyVoted\":\"false\"}");
+                                } else {
+                                    data = Encoding.UTF8.GetBytes("{\"message\": \"L'utente ha giá votato\", \"alreadyVoted\":\"true\"}");
+                                }
+                                resp.ContentType = "application/json";
+                                resp.StatusCode = 202; //accettato
+                                await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                                resp.Close();
+
+                            } else {
+                                resp.StatusCode = 406; //not acceptable
+                                resp.Close();
+                            }
                         }
                     }
                     //GESTIONE LOGIN PRESIDENTE
@@ -390,8 +443,6 @@ namespace serverWEB {
                         StreamReader sr = new StreamReader(stream, Encoding.UTF8);
                         string content = sr.ReadToEnd().Trim();
                         var elements = content.Split(";");
-                        Console.WriteLine("token del presidente" + presidente.token);
-                        Console.WriteLine("token inviato" + elements[0]);
                         if (checkPresidentToken(elements[0])) {
                             if (elements[1] == "voteOn") {
                                 openVote = true;

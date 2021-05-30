@@ -22,7 +22,7 @@
         <br>
         <h2>Benvenuto</h2>
         <br>
-        <div class="center col-6 alert alert-primary">
+        <div id="voteArea" class="center col-6 alert alert-primary">
             <form>
                 <textarea type="text" id="broadcast" class="form-control" row="5" placeholder="broadcasted"
                     readonly></textarea>
@@ -44,6 +44,10 @@
                         disabled></input>
                 </h4>
             </form>
+        </div>
+        <div id="afterVote" style="display: none">
+            <a id="message"></a>
+            <p>Puoi controllare il resto delle votazioni guardando il <a href="/monitor">monitor</a>...</p>
         </div>
     </center>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
@@ -82,10 +86,29 @@
                 vote = true;
             }
             var data = vote + ";" + tok;
-            await fetch('/vote', {
+            var res = await fetch('/vote', {
                 method: "POST",
                 body: data
             });
+            if (res.statusCode != 406) {
+                const resp = JSON.parse(await res.text());
+                document.getElementById("voteArea").style.display = "none"
+                var after = document.getElementById("afterVote");
+                var message = document.getElementById("message");
+                after.style.display = "block"
+                message.innerHTML = resp.message;
+                after.classList.add("col-6");
+
+                if (resp.alreadyVoted) {
+                    after.classList.add("alert");
+                    after.classList.add("alert-success");
+                } else {
+                    after.classList.add("alert");
+                    after.classList.add("alert-danger");
+                }
+            } else {
+                console.error("errore nell'invio dei dati, guarda il token");
+            }
         }
 
     </script>

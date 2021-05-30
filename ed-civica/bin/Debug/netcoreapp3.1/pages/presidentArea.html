@@ -76,7 +76,6 @@
             margin: auto;
         }
     </style>
-
 </head>
 
 <body>
@@ -102,7 +101,7 @@
             placeholder="Quello che scrivi qui verrá visualizzato da tutti i votanti"></textarea>
         <br>
         <label class="switch">
-            <input type="checkbox" onclick="voteHandler()" id="loginArea">
+            <input type="checkbox" onclick="voteHandler()" id="voteArea">
             <span class="slider round"></span>
         </label>
     </div>
@@ -118,22 +117,32 @@
         crossorigin="anonymous"></script>
 
     <script>
-        async function loginHandler() {
-            console.log("pressed")
-            console.log(code);
-            var data = document.getElementById("on_or_off_checkbox").checked
+        function loginHandler() {
+            var data;
+            if (document.getElementById("loginArea").checked) {
+                data = tok + ";loginOn";
+            } else {
+                data = tok + ";loginOff";
+            }
             var responseJson;
-            await fetch('/presidente', {
+            fetch('/admin', {
                 method: "POST",
                 body: data
-            }).then(function (response) {
-                return response.text().then(function (text) {
-                    console.log(text)
-                    responseJson = JSON.parse(text)
-                })
+            });
+        }
 
-            })
-            checkResponse(responseJson);
+        function voteHandler() {
+            var data;
+            if (document.getElementById("voteArea").checked) {
+                data = tok + ";voteOn";
+            } else {
+                data = tok + ";voteOff";
+            }
+            var responseJson;
+            fetch('/admin', {
+                method: "POST",
+                body: data
+            });
         }
     </script>
 </body>

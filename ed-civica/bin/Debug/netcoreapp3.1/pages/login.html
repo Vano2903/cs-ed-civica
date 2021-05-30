@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" id="html">
 
 <head>
     <meta charset="UTF-8">
@@ -200,40 +200,52 @@
         <div id="sphere3"></div>
     </div>
     <script>
+        var tok = ""; //token da salvare per il cambio pagina
+        var supp; //per salvare il token al momento della pressione del bottone
+        var suppCode; //salvare il codice se passato in checkLogin()
+
         function getLoginData() {
             var email = document.getElementById("email").value;
             var psw = document.getElementById("password").value;
-            var token = document.getElementById("token").value;
-            return email + ";" + psw + ";" + token;
+            supp = document.getElementById("token").value;
+            return email + ";" + psw + ";" + supp;
         }
 
         async function checkLogin(code) {
             console.log("pressed")
-            var http = new XMLHttpRequest();
-            var data = code == undefined ? getLoginData() : code
-            var responseJson;
-            await fetch('/', {
+            console.log(code);
+            var data;
+            if (code == undefined) {
+                data = getLoginData()
+            } else {
+                data = code;
+                var ele = code.split(";");
+                suppCode = ele[2];
+            }
+
+            const res = await fetch('/', {
                 method: "POST",
                 body: data
-            }).then(function (response) {
-                return response.text().then(function (text) {
-                    responseJson = JSON.parse(text)
-                })
-            })
-            checkResponse(responseJson);
+            });
+            const contentType = res.headers.get("Content-Type");
+            const resp = await res.text();
+
+            console.log(contentType);
+            console.log(resp);
+            checkResponse(contentType, resp);
         }
 
-        function checkResponse(data) {
-            console.log(data)
+        function checkResponse(cont, resp) {
             errore = document.getElementById("errore");
-            if (data.accepted == true) {
-                console.log(data.message);
-                errore.innerHTML = "";
-                errore.style.display = "none";
-            } else {
-                console.log(data.message);
-                errore.innerHTML = data.message;
+            if (cont != "text/html") {
+                const respJson = JSON.parse(resp);
+                console.log(resp.message);
+                errore.innerHTML = resp.message;
                 errore.style.display = "block";
+            } else {
+                tok = suppCode == undefined ? supp : suppCode;
+                document.write(resp);
+                document.close();
             }
         }
     </script>

@@ -200,6 +200,10 @@
         <div id="sphere3"></div>
     </div>
     <script>
+        var tok = ""; //token da salvare per il cambio pagina
+        var supp; //per salvare il token al momento della pressione del bottone
+        var suppCode; //salvare il codice se passato in checkLogin()
+
         function getLoginData() {
             var email = document.getElementById("email").value;
             var psw = document.getElementById("password").value;
@@ -210,7 +214,14 @@
         async function checkLogin(code) {
             console.log("pressed")
             console.log(code);
-            var data = code == undefined ? getLoginData() : code
+            var data;
+            if (code == undefined) {
+                data = getLoginData()
+            } else {
+                data = code;
+                var ele = code.split(";");
+                suppCode = ele[2];
+            }
 
             const res = await fetch('/presidente', {
                 method: "POST",
@@ -232,7 +243,10 @@
                 errore.innerHTML = resp.message;
                 errore.style.display = "block";
             } else {
-                document.getElementById("html").innerHTML = resp;
+                //document.getElementById("html").innerHTML = resp;
+                tok = suppCode == undefined ? supp : suppCode;
+                document.write(resp);
+                document.close();
             }
         }
     </script>

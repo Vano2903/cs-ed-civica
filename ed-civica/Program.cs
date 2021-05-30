@@ -86,7 +86,7 @@ namespace serverWEB {
         private List<usersJson> usersFromJson;
         //azioni del presidente
         private bool runServer = true; //non penso che, per il modo in cui é costrituo, abbia senso dare questo potere al presidente
-        private bool openLogin = true;
+        private bool openLogin = false;
         private bool openVote = false;
         //stringhe per le pagine
         private string loginPage;
@@ -95,6 +95,7 @@ namespace serverWEB {
         private string notAllowed;
         private string votePage;
         private string monitorPage;
+        private string broadcast;
         //for webserver
         private string url = "http://localhost:8000/";
         private HttpListener listener;
@@ -143,7 +144,16 @@ namespace serverWEB {
             }
             return logb.SequenceEqual(userbmin1);
         }
+        private bool checkPresidentToken(string tok) {
+            byte[] tokb = Encoding.UTF8.GetBytes(tok.Trim());
+            byte[] actualb = Encoding.UTF8.GetBytes(presidente.token.Trim());
+            byte[] supp = new byte[actualb.Length - 1];
 
+            for (int i = 0; i < actualb.Length - 1; i++) {
+                supp[i] = actualb[i];
+            }
+            return tokb.SequenceEqual(supp) ;
+        }
         //costruttore
         public server() {
             listener = new HttpListener();
@@ -204,6 +214,11 @@ namespace serverWEB {
             sr = new StreamReader(@"pages\presidentArea.html");
             presidentArea = sr.ReadToEnd();
             sr.Close();
+            
+            //carica la pagina di voto per i votanti
+            sr = new StreamReader(@"pages\vote.html");
+            votePage = sr.ReadToEnd();
+            sr.Close();
         }
         public void listen() {
             try {
@@ -228,9 +243,8 @@ namespace serverWEB {
         }
         public string printPreidente() {
             return presidente.email + ";" + presidente.password + ";" + presidente.token;
-        }
+        } 
         public async Task HandleIncomingConnections() {
-            Console.WriteLine("aaaa");
             while (runServer) {
                 HttpListenerContext ctx = await listener.GetContextAsync();
                 HttpListenerRequest req = ctx.Request;
@@ -267,25 +281,48 @@ namespace serverWEB {
                     }
                     //POST request, controlla il login e, se autorizzato, ritorna l'endpoint con l'area di voto
                     if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/")) {
-                        //legge la richiesta di un client
-                        Stream stream = req.InputStream;
-                        StreamReader sr = new StreamReader(stream, Encoding.UTF8);
-                        string content = sr.ReadToEnd().Trim();//.Replace("\n", "").Replace("\r", "").Trim();
-                        string endPattern = Regex.Escape(content);
-                        Console.WriteLine("richiesta del client:" + endPattern);
-                        //controllo del login
-                        byte[] data;
-                        if (checkLogin(content)) {
-                            data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
-                            Console.WriteLine("dovrebbe stampare qualcosa ora ;-; ");
-                            foreach(var a in voters) {
-                                Console.WriteLine(a.loginString());
+                        if (openLogin) {
+                            //legge la richiesta di un client
+                            Stream stream = req.InputStream;
+                            StreamReader sr = new StreamReader(stream, Encoding.UTF8);
+                            string content = sr.ReadToEnd().Trim();//.Replace("\n", "").Replace("\r", "").Trim();
+                            string endPattern = Regex.Escape(content);
+                            Console.WriteLine("richiesta del client:" + endPattern);
+                            //controllo del login
+                            byte[] data;
+                            if (checkLogin(content)) {
+                                //data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
+                                data = Encoding.UTF8.GetBytes(votePage);
+                                resp.ContentType = "text/html";
+                            } else {
+                                data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
+                                resp.ContentType = "application/json";
                             }
+                            //risposta al client
+                            resp.ContentEncoding = Encoding.UTF8;
+                            resp.ContentLength64 = data.LongLength;
+
+                            await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                            resp.Close();
                         } else {
-                            data = Encoding.UTF8.GetBytes("{\"message\": \"Credenziali scorrette, utente non riconosciuto\", \"accepted\": false}");
+                            resp.StatusCode = 405; //method not allowed
+                            resp.Close();
                         }
-                        //risposta al client
-                        resp.ContentType = "application/json";
+                    }
+
+                    //GESTIONE DELLE VOTAZIONI
+                    if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/vote")) {
+                        byte[] data;
+                        if (openVote) {
+                            broadcast = "MESSAGGIOOOO :D";
+                            //data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
+                            data = Encoding.UTF8.GetBytes("{\"canVote\": true, \"broadcast\": \""+broadcast+"\"}");
+                            resp.ContentType = "text/html";
+                        } else {
+                            data = Encoding.UTF8.GetBytes("{\"canVote\": false}");
+                            resp.ContentType = "application/json";
+                        }
+                        Console.WriteLine("open vote:" + openVote.ToString());
                         resp.ContentEncoding = Encoding.UTF8;
                         resp.ContentLength64 = data.LongLength;
 
@@ -293,11 +330,11 @@ namespace serverWEB {
                         resp.Close();
                     }
 
-                    //GESTIONE DELLE VOTAZIONI
-                    if (openVote) {
+                    if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/vote")) {
+                        if (openVote) {
 
+                        }
                     }
-
                     //GESTIONE LOGIN PRESIDENTE
                     //GET per l'endpoint del presidente, ritorna il login del presidente
                     if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/presidente")) {
@@ -312,7 +349,6 @@ namespace serverWEB {
                     }
                     //POST controlla se il login del presidente é corretto
                     if((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
-                        Console.WriteLine("heuu");
                         Stream stream = req.InputStream;
                         StreamReader sr = new StreamReader(stream, Encoding.UTF8);
                         string content = sr.ReadToEnd().Trim();
@@ -320,7 +356,6 @@ namespace serverWEB {
                         //controllo del login
                         byte[] data;
                         if (checkLoginPresidente(content)) {
-                            Console.WriteLine("dio bono");
                             data = Encoding.UTF8.GetBytes(presidentArea);
                             resp.ContentType = "text/html";
                         } else {
@@ -334,6 +369,41 @@ namespace serverWEB {
                         await resp.OutputStream.WriteAsync(data, 0, data.Length);
                         resp.Close();
                     }
+
+                    //area di controllo per i votanti (per il presidente)
+                    if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/admin")) {
+                        Stream stream = req.InputStream;
+                        StreamReader sr = new StreamReader(stream, Encoding.UTF8);
+                        string content = sr.ReadToEnd().Trim();
+                        var elements = content.Split(";");
+                        Console.WriteLine("token del presidente" + presidente.token);
+                        Console.WriteLine("token inviato" + elements[0]);
+                        if (checkPresidentToken(elements[0])) {
+                            if (elements[1] == "voteOn") {
+                                openVote = true;
+                                Console.Write("richiesta di voto on: ");
+                                //Console.WriteLine("il valore di openVote é: " + openVote.ToString());
+                            } else if (elements[1] == "voteOff") {
+                                openVote = false;
+                                Console.Write("richiesta di voto off: ");
+                                //Console.WriteLine("il valore di openVote é: " + openVote.ToString());
+                            } else if (elements[1] == "loginOn") {
+                                openLogin = true;
+                                Console.Write("richiesta di login on: ");
+                                //Console.WriteLine("il valore di openLogin é: " + openLogin.ToString());
+                            } else if (elements[1] == "loginOff") {
+                                openLogin = false;
+                                Console.Write("richiesta di login off: ");
+                                //Console.WriteLine("il valore di openLogin é: " + openLogin.ToString());
+                            } else {
+                                resp.StatusCode = 406; //not acceptable
+                                resp.Close();
+                            }
+                        } else {
+                            resp.StatusCode = 401; //non autorizzato
+                            resp.Close();
+                        }
+                    }
                 }
             }
         }
@@ -345,9 +415,9 @@ namespace serverWEB {
             s.init();
             s.genLoginsCode();
             Console.WriteLine("login per presidente: "+ s.printPreidente());
-            Console.WriteLine("login di un votante generico: " + s.printUsers(0));
-            Console.WriteLine("login di un votante generico: " + s.printUsers(1));
-            Console.WriteLine("login di un votante generico: " + s.printUsers(2));
+            Console.WriteLine("login di un votante generico 1: " + s.printUsers(0));
+            Console.WriteLine("login di un votante generico 2: " + s.printUsers(1));
+            Console.WriteLine("login di un votante generico 3: " + s.printUsers(2));
             Console.WriteLine("ascolto sulla porta 8000");
             s.start();
             s.listen();

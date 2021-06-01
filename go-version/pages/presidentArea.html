@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Area presidente</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgb(221, 167, 162);
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked+.slider {
+            background-color: #2196F3;
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .center {
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <br>
+    <!--
+        !!Considerazioni sulla scelta
+        *allora secondo me non ha tanto senso avere una checkbox per gestire queste cose (avvio del login e dell"area di voto) perché 
+        *basterebbe un bottone e basta visto che praticamente é una cosa da 1 volta e basta peró in questo caso é per far vedere che il 
+        *presidente ha potere di avviare/disattivare ogni area che vuole
+    -->
+
+    <div class="col-8 alert alert-primary center">
+        <h2>Benvenuto nell'area di controllo</h2><br><br>
+        <label for="login">Attiva l"area di login per i votanti</label><br>
+        <label class="switch">
+            <input type="checkbox" onclick="loginHandler()" id="loginArea">
+            <span class="slider round"></span>
+        </label>
+        <br>
+        <hr>
+        <label for="login">Attiva l"area di voto</label><br>
+        <textarea type="text" id="broadcast" class="form-control" row="5"
+            placeholder="Quello che scrivi qui verrá visualizzato da tutti i votanti"></textarea>
+        <br>
+        <label class="switch">
+            <input type="checkbox" onclick="voteHandler()" id="voteArea">
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <!-- </center> -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+    <script>
+        function loginHandler() {
+            var data;
+            if (document.getElementById("loginArea").checked) {
+                data = tok + ";loginOn";
+            } else {
+                data = tok + ";loginOff";
+            }
+            var responseJson;
+            fetch('/admin', {
+                method: "POST",
+                body: data
+            });
+        }
+
+        function voteHandler() {
+            var data;
+            if (document.getElementById("voteArea").checked) {
+                data = tok + ";voteOn";
+            } else {
+                data = tok + ";voteOff";
+            }
+            var responseJson;
+            fetch('/admin', {
+                method: "POST",
+                body: data
+            });
+        }
+    </script>
+</body>
+
+</html>

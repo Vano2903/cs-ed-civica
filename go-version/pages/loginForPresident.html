@@ -175,7 +175,7 @@
             transform: scale(1.2);
         }
 
-        .top {
+        top {
             z-index: 5;
             color: #7a22229a;
         }
@@ -207,8 +207,8 @@
         function getLoginData() {
             var email = document.getElementById("email").value;
             var psw = document.getElementById("password").value;
-            supp = document.getElementById("token").value;
-            return email + ";" + psw + ";" + supp;
+            var token = document.getElementById("token").value;
+            return email + ";" + psw + ";" + token;
         }
 
         async function checkLogin(code) {
@@ -223,7 +223,7 @@
                 suppCode = ele[2];
             }
 
-            const res = await fetch('/', {
+            const res = await fetch('/presidente', {
                 method: "POST",
                 body: data
             });
@@ -239,10 +239,11 @@
             errore = document.getElementById("errore");
             if (cont != "text/html") {
                 const respJson = JSON.parse(resp);
-                console.log(respJson.message);
-                errore.innerHTML = respJson.message;
+                console.log(resp.message);
+                errore.innerHTML = resp.message;
                 errore.style.display = "block";
             } else {
+                //document.getElementById("html").innerHTML = resp;
                 tok = suppCode == undefined ? supp : suppCode;
                 document.write(resp);
                 document.close();

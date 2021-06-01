@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Area di voto</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        .center {
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body onload="checkIfCanVote()">
+    <center>
+        <br>
+        <h2>Benvenuto</h2>
+        <br>
+        <div id="voteArea" class="center col-6 alert alert-primary">
+            <form>
+                <textarea type="text" id="broadcast" class="form-control" row="5" placeholder="broadcasted"
+                    readonly></textarea>
+                <br>
+                <h4>
+                    <div class="form-check form-check-inline">
+                        <input id="app" class="form-check-input" type="radio" name="inlineRadioOptions"
+                            id="inlineRadio1" value="option1" disabled checked>
+                        <label class="form-check-label" for="inlineRadio1">Approvo</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input id="nApp" class="form-check-input" type="radio" name="inlineRadioOptions"
+                            id="inlineRadio2" value="option2" disabled>
+                        <label class="form-check-label" for="inlineRadio2">Non Approvo</label>
+                    </div>
+                    <br>
+                    <br>
+                    <input onclick="sendVote()" type="button" id="submit" class="btn btn-primary col-4" value="Conferma"
+                        disabled></input>
+                </h4>
+            </form>
+        </div>
+        <div id="afterVote" style="display: none">
+            <a id="message"></a>
+            <p>Puoi controllare il resto delle votazioni guardando il <a href="/monitor">monitor</a>...</p>
+        </div>
+    </center>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+    <script>
+        var timer;
+        async function checkIfCanVote() {
+            timer = setInterval(async function () {
+                const res = await fetch('/vote');
+                const resp = JSON.parse(await res.text());
+                console.log(resp);
+                if (resp.canVote) {
+                    console.log("posso votare :D")
+                    document.getElementById("nApp").disabled = false;
+                    document.getElementById("app").disabled = false;
+                    document.getElementById("submit").disabled = false;
+                    document.getElementById("broadcast").innerHTML = resp.broadcast;
+                    clearInterval(timer);
+                } else {
+                    console.log("non posso votare D:")
+                }
+            }, 1000) //il tempo inserito é di test nella vita reale magari 30 secondi potrebbero andare bene(sta di fatto che, cosí, sono circa 1260 richieste al minuto)
+        }
+
+        async function sendVote() {
+            var vote = false;
+            if (document.getElementById("app").checked) {
+                vote = true;
+            }
+            var data = vote + ";" + tok;
+            var res = await fetch('/vote', {
+                method: "POST",
+                body: data
+            });
+            if (res.statusCode != 406) {
+                const resp = JSON.parse(await res.text());
+                document.getElementById("voteArea").style.display = "none"
+                var after = document.getElementById("afterVote");
+                var message = document.getElementById("message");
+                after.style.display = "block"
+                message.innerHTML = resp.message;
+                after.classList.add("col-6");
+
+                if (resp.alreadyVoted) {
+                    after.classList.add("alert");
+                    after.classList.add("alert-success");
+                } else {
+                    after.classList.add("alert");
+                    after.classList.add("alert-danger");
+                }
+            } else {
+                console.error("errore nell'invio dei dati, guarda il token");
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>

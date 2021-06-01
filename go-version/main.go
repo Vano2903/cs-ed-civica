@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -8,7 +9,6 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type Token struct {
@@ -40,37 +40,37 @@ func (t *Token) GenToken(pos int) error {
 }
 
 type Voter struct {
-	Id       int
-	Token    string
-	Name     string
-	LastName string
-	Voted    bool
-	Vote     int
-	Position int
+	Id       int    `json: id`
+	Name     string `json: name`
+	LastName string `json: lastName`
+	Email    string `json: email`
+	Password string `json: password`
+	Voted    bool   `json: voted`
+	Vote     int    `json: vote`
+	Position int    `json: position`
+	Logged   bool   `json: logged`
+	Token    Token
+}
+
+func (t Voter) LoginString() string {
+	return t.Email + ";" + t.Password + ";" + t.Token.Token
 }
 
 type Server struct {
-	Voters        []Voter
-	UsersForLogin []string
-	UsersFromFile []string
+	Users []Voter
 }
 
+//carica gli utenti da json e li mette dentro Users
 func (s *Server) init() error {
-	data := ReadFile("config/senatore.txt")
-	// datas := File.Read(data)
-	datas := strings.Split(string(data), "\n")
-	for pos, data := range datas {
-		s.UsersFromFile = append(s.UsersFromFile, data)
-		var t Token
-		elements := strings.Split(data, ";")
-		err := t.GenToken(pos + 1)
-		if err != nil {
-			return err
-		}
-		toAdd := elements[3] + ";" + elements[4] + ";" + t.Token
-		s.UsersForLogin = append(s.UsersForLogin, toAdd)
+	data := ReadFile("config/senatore.json")
+	err := json.Unmarshal(data, &s.Users)
+	for i := 0; i < len(s.Users); i++ {
+		pos := i + 1
+		s.Users[i].Position = pos
+		s.Users[i].Token.GenToken(pos)
+		// fmt.Println(s.Users[i].LoginString())
 	}
-	return nil
+	return err
 }
 
 //start the server and listen on localhost:8080
@@ -82,40 +82,21 @@ func (s Server) Start() error {
 //print all logins codes, for now it's kinda just for debug
 func (s Server) PrintLogins() {
 	fmt.Println(s.init())
-	for _, a := range s.UsersForLogin {
-		fmt.Println(a)
+	for _, a := range s.Users {
+		fmt.Println(a.LoginString())
 	}
 }
 
 //check if the login is correct, if so then add it to Voters
 func (s *Server) CheckLoginAndAdd(login string) bool {
-	//split the login string
-	elements := strings.Split(login, ";")
-	var exist bool = false
-	for _, correctLogin := range s.UsersForLogin {
-		if correctLogin == login {
-			exist = true
-			break
+	for _, user := range s.Users {
+		fmt.Println("user to check ", user.LoginString(), "==", login)
+		if user.LoginString() == login {
+			user.Logged = true
+			return true
 		}
 	}
-	//if login is correct
-	if exist {
-		var toAdd Voter
-		var fullVoterElements []string
-		for i, check := range s.UsersForLogin {
-			if check == login {
-				fullVoterElements = strings.Split(s.UsersFromFile[i], ";")
-			}
-		}
-		//create Voter object
-		id, _ := strconv.Atoi(fullVoterElements[0])
-		toAdd.Id = id
-		toAdd.Token = elements[2]
-		toAdd.Name = fullVoterElements[1]
-		toAdd.LastName = fullVoterElements[2]
-		s.Voters = append(s.Voters, toAdd)
-	}
-	return exist
+	return false
 }
 
 //handle the clients that connect to "/" and respond with the login page
@@ -124,10 +105,7 @@ func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	//return the login page
 	case "GET":
 		w.Header().Add("Content Type", "text/html")
-
-		// content, err := os.Open("config/senatore.txt")
 		content := ReadFile("pages/login.html")
-		// fmt.Println(content)
 		w.Write(content)
 		return
 
@@ -151,9 +129,8 @@ func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var s Server
-	s.PrintLogins()
 	s.init()
+	s.PrintLogins()
 	log.Fatal(s.Start())
 	log.Println("inizio server sulla porta 8080")
-
 }

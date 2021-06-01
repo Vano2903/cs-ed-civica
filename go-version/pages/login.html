@@ -227,26 +227,18 @@
                 method: "POST",
                 body: data
             });
-            const contentType = res.headers.get("Content-Type");
             const resp = await res.text();
 
-            console.log(contentType);
-            console.log(resp);
-            checkResponse(contentType, resp);
+            console.log(JSON.parse(resp));
+            checkResponse(resp);
         }
 
-        function checkResponse(cont, resp) {
+        function checkResponse(resp) {
             errore = document.getElementById("errore");
-            if (cont != "text/html") {
-                const respJson = JSON.parse(resp);
-                console.log(respJson.message);
-                errore.innerHTML = respJson.message;
-                errore.style.display = "block";
-            } else {
-                tok = suppCode == undefined ? supp : suppCode;
-                document.write(resp);
-                document.close();
-            }
+            const respJson = JSON.parse(resp);
+            console.log(respJson.message);
+            errore.innerHTML = respJson.message;
+            errore.style.display = "block";
         }
     </script>
 

@@ -40,15 +40,15 @@ func (t *Token) GenToken(pos int) error {
 }
 
 type Voter struct {
-	Id       int    `json: id`
-	Name     string `json: name`
-	LastName string `json: lastName`
-	Email    string `json: email`
-	Password string `json: password`
-	Voted    bool   `json: voted`
-	Vote     int    `json: vote`
-	Position int    `json: position`
-	Logged   bool   `json: logged`
+	Id       int    `json: "id"`
+	Name     string `json: "name"`
+	LastName string `json: "lastName"`
+	Email    string `json: "email"`
+	Password string `json: "password"`
+	Voted    bool   `json: "voted"`
+	Vote     int    `json: "vote"`
+	Position int    `json: "position"`
+	Logged   bool   `json: "logged"`
 	Token    Token
 }
 
@@ -60,7 +60,7 @@ type Server struct {
 	Users []Voter
 }
 
-//carica gli utenti da json e li mette dentro Users
+//unmarshall users from file and fill Users slice
 func (s *Server) init() error {
 	data := ReadFile("config/senatore.json")
 	err := json.Unmarshal(data, &s.Users)
@@ -90,7 +90,6 @@ func (s Server) PrintLogins() {
 //check if the login is correct, if so then add it to Voters
 func (s *Server) CheckLoginAndAdd(login string) bool {
 	for _, user := range s.Users {
-		fmt.Println("user to check ", user.LoginString(), "==", login)
 		if user.LoginString() == login {
 			user.Logged = true
 			return true
@@ -116,10 +115,23 @@ func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("errore nella post a login handler", err)
 		}
 		log.Printf("%s\n", reqBody)
+		w.Header().Set("Content-Type", "application/json")
+		mes := struct {
+			Message  string `json:"message"`
+			Accepted bool   `json:"accepted"`
+		}{
+			"Login accettato",
+			true,
+		}
 		if s.CheckLoginAndAdd(string(reqBody)) {
-			w.Write([]byte("Correct Login\n"))
+			toSend, _ := json.Marshal(mes)
+			w.Write([]byte(toSend))
 		} else {
-			w.Write([]byte("Nope ;-; xD\n"))
+			mes.Message = "Credenziali scorrette"
+			mes.Accepted = false
+			toSend, _ := json.Marshal(mes)
+			w.Write([]byte(toSend))
+			w.Write([]byte(toSend))
 		}
 	default:
 		w.WriteHeader(http.StatusNotImplemented)

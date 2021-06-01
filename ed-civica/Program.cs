@@ -92,15 +92,20 @@ namespace serverWEB {
         public string getToken() {
             return token;
         }
+        public string jsonElement() {
+            //{"name":"ciao", "vote": 1, "position": 2}
+            return "{\"name\":\"" + lastName + " " + name + "\", \"vote\":" + vote + ", \"position\":" + position + "}";
+        }
     }
     class server {
+        //gestinone utenti
         private List<voter> voters;
         private usersJson presidente;
         private List<usersJson> usersFromJson;
         //azioni del presidente
         private bool runServer = true; //non penso che, per il modo in cui é costruito, abbia senso dare questo potere al presidente
-        private bool openLogin = false;
-        private bool openVote = false;
+        private bool openLogin = true; 
+        private bool openVote = true;
         //stringhe per le pagine
         private string loginPage;
         private string loginPageForPresident;
@@ -363,7 +368,7 @@ namespace serverWEB {
                         if (openVote) {
                             broadcast = "MESSAGGIOOOO :D";
                             //data = Encoding.UTF8.GetBytes("{\"message\": \"Login accettato correttamente\",\"accepted\": true}");
-                            data = Encoding.UTF8.GetBytes("{\"canVote\": true, \"broadcast\": \""+broadcast+"\"}");
+                            data = Encoding.UTF8.GetBytes("{\"canVote\": true, \"broadcast\": \"" + broadcast + "\"}");
                             resp.ContentType = "text/html";
                         } else {
                             data = Encoding.UTF8.GetBytes("{\"canVote\": false}");
@@ -418,7 +423,7 @@ namespace serverWEB {
                         resp.Close();
                     }
                     //POST controlla se il login del presidente é corretto
-                    if((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
+                    if ((req.HttpMethod == "POST") && (req.Url.AbsolutePath == "/presidente")) {
                         Stream stream = req.InputStream;
                         StreamReader sr = new StreamReader(stream, Encoding.UTF8);
                         string content = sr.ReadToEnd().Trim();
@@ -478,6 +483,28 @@ namespace serverWEB {
                         init();
                         byte[] data = Encoding.UTF8.GetBytes(monitorPage);
                         resp.ContentType = "text/html";
+                        resp.ContentEncoding = Encoding.UTF8;
+                        resp.ContentLength64 = data.LongLength;
+
+                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                        resp.Close();
+                    }
+
+                    //non so come é gestito il multi utente in questo programma, se ogni utente occupa un thread diverso o se tutti gli utenti usano le stesse risorse
+                    //anche perché con 3 utenti ritengo quasi impossibili ottenere dei problemi ma con molti utenti come dovrebbe essere effettivamente
+                    //non so valutare la gestione di questa funzione
+                    if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/results")) {
+                        string jsonToSend = "[";
+                        for (int i = 0; i < voters.Count; i++) {
+                            if(i != 0) {
+                                jsonToSend += ",";
+                            }
+                            jsonToSend += voters[i].jsonElement();
+                        }
+                        jsonToSend += "]";
+                        //invia il json
+                        byte[] data = Encoding.UTF8.GetBytes(jsonToSend);
+                        resp.ContentType = "application/json";
                         resp.ContentEncoding = Encoding.UTF8;
                         resp.ContentLength64 = data.LongLength;
 

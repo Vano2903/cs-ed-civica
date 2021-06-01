@@ -22,13 +22,13 @@
             var data = new google.visualization.DataTable();
             data.addColumn('string', 'Votante');
             data.addColumn('string', 'Voto');
-            data.addRows(2);
             //per la prossima versione aggiungere i colori dei voti
             // var colors = { approve: { 'style': 'background-color: #67d170c9;' }, notApprove: { 'style': 'background-color: #d16767c9;' }, nothing: { 'style': 'background-color: #909090c9;' } }
             // data.setCell(0, 0, 'ciao');
             // data.setCell(0, 1, 'approvo', null, { 'style': 'background-color: #d16767c9;' });
             // data.setCell(1, 0, 'ciao');
             // data.setCell(1, 1, 'approvo', null, { 'style': 'background-color: #909090c9;' });
+            console.log(dataGraph)
             data.addRows(dataGraph)
             var table = new google.visualization.Table(document.getElementById('table_div'));
             table.draw(data, options);
@@ -38,7 +38,8 @@
             const res = await fetch('/results', {
                 method: "GET",
             });
-            const resp = await res.text();
+            const resp = JSON.parse(await res.text());
+            console.log(resp);
             return resp;
         }
 
@@ -58,17 +59,17 @@
             }
         }
 
-        function genTableData(data) {
+        function genTableData(dataToConvert) {
             var data = [];
-            for (var i = 0; i < data.length; i++) {
+            for (var i = 0; i < dataToConvert.length; i++) {
                 //prende il nome del votante
                 var toAdd = []
-                toAdd.push(data[i].name);
+                toAdd.push(dataToConvert[i].name);
                 //definisce cosa ha votato
                 var voteType;
-                if (data[i].vote == 1) {
+                if (dataToConvert[i].vote == 1) {
                     voteType = "approva";
-                } else if (data[i].vote == 2) {
+                } else if (dataToConvert[i].vote == 2) {
                     voteType = "non approva";
                 } else {
                     voteType = "non ancora votato";
@@ -80,8 +81,9 @@
         }
 
         async function genChart() {
-            var resp;// = await getData();
+            var resp = await getData();
             var graphData = genTableData(resp);
+            console.log(graphData);
             drawTable(graphData);
         }
     </script>

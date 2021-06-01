@@ -175,7 +175,7 @@
             transform: scale(1.2);
         }
 
-        top {
+        .top {
             z-index: 5;
             color: #7a22229a;
         }
@@ -239,8 +239,8 @@
             errore = document.getElementById("errore");
             if (cont != "text/html") {
                 const respJson = JSON.parse(resp);
-                console.log(resp.message);
-                errore.innerHTML = resp.message;
+                console.log(respJson.message);
+                errore.innerHTML = respJson.message;
                 errore.style.display = "block";
             } else {
                 tok = suppCode == undefined ? supp : suppCode;

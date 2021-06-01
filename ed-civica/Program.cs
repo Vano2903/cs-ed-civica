@@ -93,7 +93,6 @@ namespace serverWEB {
             return token;
         }
     }
-
     class server {
         private List<voter> voters;
         private usersJson presidente;
@@ -261,6 +260,10 @@ namespace serverWEB {
             //carica la pagina di voto per i votanti
             sr = new StreamReader(@"pages\vote.html");
             votePage = sr.ReadToEnd();
+            sr.Close();
+
+            sr = new StreamReader(@"pages\monitor.html");
+            monitorPage = sr.ReadToEnd();
             sr.Close();
         }
         public void listen() {
@@ -468,6 +471,18 @@ namespace serverWEB {
                             resp.StatusCode = 401; //non autorizzato
                             resp.Close();
                         }
+                    }
+
+                    //monitor endpoint
+                    if ((req.HttpMethod == "GET") && (req.Url.AbsolutePath == "/monitor")) {
+                        init();
+                        byte[] data = Encoding.UTF8.GetBytes(monitorPage);
+                        resp.ContentType = "text/html";
+                        resp.ContentEncoding = Encoding.UTF8;
+                        resp.ContentLength64 = data.LongLength;
+
+                        await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                        resp.Close();
                     }
                 }
             }

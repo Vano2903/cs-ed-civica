@@ -117,6 +117,58 @@
         crossorigin="anonymous"></script>
 
     <script>
+        var data = sessionStorage.getItem('DataPresidentSession');
+        var ws;
+        function connectServer() {
+            if (ws) {
+                return false;
+            }
+            ws = new WebSocket("ws://localhost:8080/socketPresident");
+            ws.onopen = function () {
+                // print("OPEN");
+                console.log("connessione aperta")
+                ws.send("verify;" + data);
+            }
+            ws.onclose = function () {
+                sessionStorage.removeItem('DataVoteSession');
+                console.log("CLOSE");
+                ws = null;
+            }
+            ws.onmessage = function (evt) {
+                var risp = JSON.parse(evt.data)
+                console.log(risp);
+                if (risp.scope == "verify") {
+                    console
+                    if (risp.approved) {
+                        console.log("approvato")
+                        document.getElementById("voteArea").style.display = "block";
+                    } else {
+                        console.log("non approvato")
+                        sessionStorage.removeItem('DataVoteSession');
+                        window.location.href = "localhost:8080/";
+                    }
+                } else if (risp.scope == "openVote") {
+                    document.getElementById("broadcast").innerHTML = risp.broadcast
+                    document.getElementById("nApp").disabled = false;
+                    document.getElementById("app").disabled = false;
+                    document.getElementById("submit").disabled = false;
+                }
+            }
+            ws.onerror = function (evt) {
+                console.log("ERROR: " + evt.data);
+            }
+            return false;
+        }
+
+        function send(message) {
+            if (!ws) {
+                return false;
+            }
+            console.log("SEND: " + message);
+
+            return false;
+        };
+
         function loginHandler() {
             var data;
             if (document.getElementById("loginArea").checked) {

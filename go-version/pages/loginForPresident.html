@@ -222,31 +222,26 @@
                 var ele = code.split(";");
                 suppCode = ele[2];
             }
-
             const res = await fetch('/presidente', {
-                method: "POST",
+                method: 'POST',
                 body: data
-            });
-            const contentType = res.headers.get("Content-Type");
+            })
             const resp = await res.text();
-
-            console.log(contentType);
+            sessioData = data;
             console.log(resp);
-            checkResponse(contentType, resp);
+            checkResponse(JSON.parse(resp));
         }
 
-        function checkResponse(cont, resp) {
+        function checkResponse(resp) {
             errore = document.getElementById("errore");
-            if (cont != "text/html") {
-                const respJson = JSON.parse(resp);
+            if (resp.accepted) {
+                errore.style.display = "none";
+                sessionStorage.setItem('DataPresidentSession', sessioData);
+                window.location.href = "http://localhost:8080/vote";
+            } else {
                 console.log(resp.message);
                 errore.innerHTML = resp.message;
                 errore.style.display = "block";
-            } else {
-                //document.getElementById("html").innerHTML = resp;
-                tok = suppCode == undefined ? supp : suppCode;
-                document.write(resp);
-                document.close();
             }
         }
     </script>

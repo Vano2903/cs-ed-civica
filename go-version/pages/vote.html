@@ -15,10 +15,116 @@
             margin: auto;
         }
     </style>
+
+    <script>
+        var data = sessionStorage.getItem('DataVoteSession');
+        var ws;
+        function connectServer() {
+            if (ws) {
+                return false;
+            }
+            ws = new WebSocket("ws://localhost:8080/socketVote");
+            ws.onopen = function () {
+                // print("OPEN");
+                console.log("connessione aperta")
+                ws.send("verify;" + data);
+            }
+            ws.onclose = function () {
+                sessionStorage.removeItem('DataVoteSession');
+                console.log("CLOSE");
+                ws = null;
+            }
+            ws.onmessage = function (evt) {
+                var risp = JSON.parse(evt.data)
+                console.log(risp);
+                if (risp.scope == "verify") {
+                    console
+                    if (risp.approved) {
+                        console.log("approvato")
+                        document.getElementById("voteArea").style.display = "block";
+                    } else {
+                        console.log("non approvato")
+                        sessionStorage.removeItem('DataVoteSession');
+                        window.location.href = "localhost:8080/";
+                    }
+                } else if (risp.scope == "openVote") {
+                    document.getElementById("broadcast").innerHTML = risp.broadcast
+                    document.getElementById("nApp").disabled = false;
+                    document.getElementById("app").disabled = false;
+                    document.getElementById("submit").disabled = false;
+                }
+            }
+            ws.onerror = function (evt) {
+                console.log("ERROR: " + evt.data);
+            }
+            return false;
+        }
+
+        function send(message) {
+            if (!ws) {
+                return false;
+            }
+            console.log("SEND: " + message);
+
+            return false;
+        };
+
+    // var timer;
+    // async function checkIfCanVote() {
+    //     timer = setInterval(async function () {
+    //         const res = await fetch('/vote');
+    //         const resp = JSON.parse(await res.text());
+    //         console.log(resp);
+    //         if (resp.canVote) {
+    //             console.log("posso votare :D")
+    //             document.getElementById("nApp").disabled = false;
+    //             document.getElementById("app").disabled = false;
+    //             document.getElementById("submit").disabled = false;
+    //             document.getElementById("broadcast").innerHTML = resp.broadcast;
+    //             clearInterval(timer);
+    //         } else {
+    //             console.log("non posso votare D:")
+    //         }
+    //     }, 1000) //il tempo inserito é di test nella vita reale magari 30 secondi potrebbero andare bene(sta di fatto che, cosí, sono circa 1260 richieste al minuto)
+    // }
+
+    // async function sendVote() {
+    //     var vote = false;
+    //     if (document.getElementById("app").checked) {
+    //         vote = true;
+    //     }
+    //     var data = vote + ";" + tok;
+    //     var res = await fetch('/vote', {
+    //         method: "POST",
+    //         body: data
+    //     });
+    //     if (res.statusCode != 406) {
+    //         const resp = JSON.parse(await res.text());
+    //         document.getElementById("voteArea").style.display = "none"
+    //         var after = document.getElementById("afterVote");
+    //         var message = document.getElementById("message");
+    //         after.style.display = "block"
+    //         message.innerHTML = resp.message;
+    //         after.classList.add("col-6");
+
+    //         if (resp.alreadyVoted) {
+    //             after.classList.add("alert");
+    //             after.classList.add("alert-success");
+    //         } else {
+    //             after.classList.add("alert");
+    //             after.classList.add("alert-danger");
+    //         }
+    //     } else {
+    //         console.error("errore nell'invio dei dati, guarda il token");
+    //     }
+    // }
+
+    </script>
+
 </head>
 
-<body onload="checkIfCanVote()">
-    <center>
+<body onload="connectServer()">
+    <center id="voteArea" style="display: none;">
         <br>
         <h2>Benvenuto</h2>
         <br>
@@ -60,58 +166,7 @@
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
 
-    <script>
-        var timer;
-        async function checkIfCanVote() {
-            timer = setInterval(async function () {
-                const res = await fetch('/vote');
-                const resp = JSON.parse(await res.text());
-                console.log(resp);
-                if (resp.canVote) {
-                    console.log("posso votare :D")
-                    document.getElementById("nApp").disabled = false;
-                    document.getElementById("app").disabled = false;
-                    document.getElementById("submit").disabled = false;
-                    document.getElementById("broadcast").innerHTML = resp.broadcast;
-                    clearInterval(timer);
-                } else {
-                    console.log("non posso votare D:")
-                }
-            }, 1000) //il tempo inserito é di test nella vita reale magari 30 secondi potrebbero andare bene(sta di fatto che, cosí, sono circa 1260 richieste al minuto)
-        }
 
-        async function sendVote() {
-            var vote = false;
-            if (document.getElementById("app").checked) {
-                vote = true;
-            }
-            var data = vote + ";" + tok;
-            var res = await fetch('/vote', {
-                method: "POST",
-                body: data
-            });
-            if (res.statusCode != 406) {
-                const resp = JSON.parse(await res.text());
-                document.getElementById("voteArea").style.display = "none"
-                var after = document.getElementById("afterVote");
-                var message = document.getElementById("message");
-                after.style.display = "block"
-                message.innerHTML = resp.message;
-                after.classList.add("col-6");
-
-                if (resp.alreadyVoted) {
-                    after.classList.add("alert");
-                    after.classList.add("alert-success");
-                } else {
-                    after.classList.add("alert");
-                    after.classList.add("alert-danger");
-                }
-            } else {
-                console.error("errore nell'invio dei dati, guarda il token");
-            }
-        }
-
-    </script>
 
 </body>
 

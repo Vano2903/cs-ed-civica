@@ -8,7 +8,7 @@ import (
 
 //ReadFile return all the file as a byte array
 //expect a relative path
-func ReadFile(path string) []byte {
+func readFile(path string) []byte {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		fmt.Println("Errore nel leggere il file")
@@ -27,7 +27,7 @@ func WriteFile(path string, stream []byte) error {
 //AppendFile append an array of byte type to an existing file
 //expect a relative path
 func AppendFile(path string, stream []byte) error {
-	fileContent := ReadFile(path)
+	fileContent := readFile(path)
 	fileContent = append(fileContent, stream...)
 	err := WriteFile(path, fileContent)
 	return err

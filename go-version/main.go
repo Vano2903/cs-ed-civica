@@ -10,7 +10,9 @@ func init() {
 
 func main() {
 	var s Server
-	log.Fatal(s.LoadUsers())
+	// s.LoadUsers()
+	log.Println(s.LoadUsers())
+	// s.PrintLogins()
 	// s.PrintLogins()
 	log.Println("user1: ", s.Users[0].LoginString())
 	log.Println("presidente: ", s.Presidente.LoginString())

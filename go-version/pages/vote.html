@@ -45,7 +45,7 @@
                     } else {
                         console.log("non approvato")
                         sessionStorage.removeItem('DataVoteSession');
-                        window.location.href = "localhost:8080/";
+                        // window.location.href = "localhost:8080/";
                     }
                 } else if (risp.scope == "openVote") {
                     document.getElementById("broadcast").innerHTML = risp.broadcast

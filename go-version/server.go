@@ -70,7 +70,7 @@ func (s *Server) CheckLoginAndAdd(login string) bool {
 }
 
 func (s Server) SocketVote(w http.ResponseWriter, r *http.Request) {
-
+	log.Println("soo quiiiiiii")
 	can := make(chan int)
 	//! Se non dovesse funzionare metti "&chan"
 	_ = clientSocket.AppendElement(can)
@@ -95,6 +95,7 @@ func (s Server) SocketVote(w http.ResponseWriter, r *http.Request) {
 		log.Println("hellooo")
 		ele := strings.Split(msgString, ";")
 		log.Println("anyone")
+		
 		switch ele[0] {
 		case "verify":
 			var verified bool

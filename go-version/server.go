@@ -17,7 +17,7 @@ type Server struct {
 }
 
 //unmarshall users from file and fill Users slice
-func (s *Server) loadUsers() error {
+func (s *Server) LoadUsers() error {
 	data := readFile("config/senatore.json")
 	err := json.Unmarshal(data, &s.Users)
 	if err != nil {
@@ -44,7 +44,7 @@ func (s Server) Start() error {
 
 //print all logins codes, for now it's kinda just for debug
 func (s Server) PrintLogins() {
-	fmt.Println(s.loadUsers())
+	// fmt.Println(s.LoadUsers())
 	for _, a := range s.Users {
 		fmt.Println(a.LoginString())
 	}

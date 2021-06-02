@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Area Login</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap");
 
@@ -182,7 +183,7 @@
     </style>
 </head>
 
-<body>
+<body onload="connectServer()">
     <button onclick="checkLogin()" id="login">></button>
     <div>
         <h1>LOGIN</h1>
@@ -200,9 +201,42 @@
         <div id="sphere3"></div>
     </div>
     <script>
+        var ws;
+        function connectServer() {
+            if (ws) {
+                return false;
+            }
+            ws = new WebSocket("ws://localhost:8080/socket");
+            ws.onopen = function () {
+                // print("OPEN");
+                console.log("connessione aperta")
+            }
+            ws.onclose = function () {
+                console.log("CLOSE");
+                ws = null;
+            }
+            ws.onmessage = function (evt) {
+                console.log("RESPONSE: " + evt.data);
+            }
+            ws.onerror = function (evt) {
+                console.log("ERROR: " + evt.data);
+            }
+            return false;
+        }
+
+        function send(send) {
+            if (!ws) {
+                return false;
+            }
+            console.log("SEND: " + send);
+            ws.send(send);
+            return false;
+        };
+
         var tok = ""; //token da salvare per il cambio pagina
         var supp; //per salvare il token al momento della pressione del bottone
         var suppCode; //salvare il codice se passato in checkLogin()
+
 
         function getLoginData() {
             var email = document.getElementById("email").value;
@@ -227,18 +261,26 @@
                 method: "POST",
                 body: data
             });
+            const contentType = res.headers.get("Content-Type");
             const resp = await res.text();
 
-            console.log(JSON.parse(resp));
-            checkResponse(resp);
+            console.log(contentType);
+            console.log(resp);
+            checkResponse(contentType, resp);
         }
 
-        function checkResponse(resp) {
+        function checkResponse(cont, resp) {
             errore = document.getElementById("errore");
-            const respJson = JSON.parse(resp);
-            console.log(respJson.message);
-            errore.innerHTML = respJson.message;
-            errore.style.display = "block";
+            if (cont != "text/html") {
+                const respJson = JSON.parse(resp);
+                console.log(respJson.message);
+                errore.innerHTML = respJson.message;
+                errore.style.display = "block";
+            } else {
+                tok = suppCode == undefined ? supp : suppCode;
+                document.write(resp);
+                document.close();
+            }
         }
     </script>
 

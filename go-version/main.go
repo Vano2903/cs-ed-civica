@@ -9,7 +9,11 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/websocket"
 )
+
+var upgrader = websocket.Upgrader{}
 
 type Token struct {
 	Token string
@@ -76,6 +80,8 @@ func (s *Server) init() error {
 //start the server and listen on localhost:8080
 func (s Server) Start() error {
 	http.HandleFunc("/", s.loginHandler)
+	http.HandleFunc("/socket", s.Socket)
+	http.HandleFunc("/vote", s.voteHandler)
 	return http.ListenAndServe(":8080", nil)
 }
 
@@ -98,6 +104,28 @@ func (s *Server) CheckLoginAndAdd(login string) bool {
 	return false
 }
 
+func (s Server) Socket(w http.ResponseWriter, r *http.Request) {
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+	defer c.Close()
+	for {
+		mt, message, err := c.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			break
+		}
+		log.Printf("recv: %s", message)
+		err = c.WriteMessage(mt, message)
+		if err != nil {
+			log.Println("write:", err)
+			break
+		}
+	}
+}
+
 //handle the clients that connect to "/" and respond with the login page
 func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -115,20 +143,18 @@ func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("errore nella post a login handler", err)
 		}
 		log.Printf("%s\n", reqBody)
-		w.Header().Set("Content-Type", "application/json")
 		mes := struct {
 			Message  string `json:"message"`
 			Accepted bool   `json:"accepted"`
 		}{
-			"Login accettato",
-			true,
+			"Credenziali scorrette",
+			false,
 		}
 		if s.CheckLoginAndAdd(string(reqBody)) {
-			toSend, _ := json.Marshal(mes)
-			w.Write([]byte(toSend))
+			w.Header().Set("Content-Type", "text/html")
+			w.Write(ReadFile("pages/vote.html"))
 		} else {
-			mes.Message = "Credenziali scorrette"
-			mes.Accepted = false
+			w.Header().Set("Content-Type", "application/json")
 			toSend, _ := json.Marshal(mes)
 			w.Write([]byte(toSend))
 			w.Write([]byte(toSend))
@@ -139,10 +165,17 @@ func (s Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s Server) voteHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "CONNECT":
+
+	}
+}
+
 func main() {
 	var s Server
 	s.init()
-	s.PrintLogins()
+	// s.PrintLogins()
 	log.Fatal(s.Start())
 	log.Println("inizio server sulla porta 8080")
 }

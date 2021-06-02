@@ -45,12 +45,12 @@ func Exist(path string) bool {
 	return !info.IsDir()
 }
 
-func isError(err error) bool {
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return (err != nil)
-}
+// func isError(err error) bool {
+// 	if err != nil {
+// 		fmt.Println(err.Error())
+// 	}
+// 	return (err != nil)
+// }
 
 // func createFile(path string) {
 // 	// check if file exists

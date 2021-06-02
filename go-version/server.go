@@ -131,6 +131,11 @@ func (s Server) SocketVote(w http.ResponseWriter, r *http.Request) {
 		select {
 		case <-can:
 			//TODO: Scrivi al client che ora può votare
+			content := "{\"scope\":\"verify\", \"approved\":false}"
+			err = c.WriteMessage(mt, []byte(content))
+			if err != nil {
+				log.Println("errore:", err)
+			}
 		}
 	}
 }

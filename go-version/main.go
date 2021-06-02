@@ -229,6 +229,8 @@ func (s Server) voteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//ciaoooooo
+
 func (s Server) presidenteHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
